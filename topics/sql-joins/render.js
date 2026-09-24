@@ -1,11 +1,4 @@
-import { dataset } from './steps.js';
-
-const JOIN_LABELS = {
-  INNER: 'INNER JOIN',
-  LEFT: 'LEFT JOIN',
-  RIGHT: 'RIGHT JOIN',
-  FULL: 'FULL OUTER JOIN',
-};
+import { dataset, JOIN_LABELS } from './steps.js';
 
 function formatCell(value) {
   return value === null || value === undefined ? 'NULL' : String(value);

@@ -27,7 +27,7 @@ const JOIN_DEFS = {
   FULL: { drive: 'users', includeUnmatchedDrive: true, includeUnmatchedOther: true },
 };
 
-const JOIN_LABELS = {
+export const JOIN_LABELS = {
   INNER: 'INNER JOIN',
   LEFT: 'LEFT JOIN',
   RIGHT: 'RIGHT JOIN',

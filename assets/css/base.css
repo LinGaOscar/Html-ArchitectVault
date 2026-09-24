@@ -63,6 +63,7 @@ a { color: var(--bs-info); }
   font-size: .875rem;
   overflow-x: auto;
 }
+.stage h3, .stage p { font-family: var(--bs-font-sans-serif); }
 .caption { min-height: 2.5em; margin: 0; color: var(--bs-body-color); }
 .transport { display: flex; align-items: center; gap: var(--bs-spacer-2); }
 .transport button {

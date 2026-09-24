@@ -147,6 +147,7 @@ a { color: var(--bs-info); }
   font-size: .875rem;
   overflow-x: auto;
 }
+.stage h3, .stage p { font-family: var(--bs-font-sans-serif); }
 .caption { min-height: 2.5em; margin: 0; color: var(--bs-body-color); }
 .transport { display: flex; align-items: center; gap: var(--bs-spacer-2); }
 .transport button {
@@ -318,7 +319,7 @@ export function initPlayer({ steps, render, mount }) {
   mount.innerHTML = `
     <div class="player">
       <div class="stage" id="stage"></div>
-      <p class="caption" id="caption"></p>
+      <p class="caption" id="caption" aria-live="polite"></p>
       <div class="transport">
         <button type="button" data-action="prev" aria-label="上一步">⏮</button>
         <button type="button" data-action="play-pause" aria-label="播放">▶</button>
@@ -397,7 +398,6 @@ export function initPlayer({ steps, render, mount }) {
 
   document.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
-      event.preventDefault();
       if (playing) pause();
       else play();
     } else if (event.code === 'ArrowLeft') {
@@ -447,7 +447,7 @@ const JOIN_DEFS = {
   FULL: { drive: 'users', includeUnmatchedDrive: true, includeUnmatchedOther: true },
 };
 
-const JOIN_LABELS = {
+export const JOIN_LABELS = {
   INNER: 'INNER JOIN',
   LEFT: 'LEFT JOIN',
   RIGHT: 'RIGHT JOIN',
@@ -546,14 +546,7 @@ export const steps = [
 - [ ] **Step 4: 建立 `topics/sql-joins/render.js`**
 
 ```js
-import { dataset } from './steps.js';
-
-const JOIN_LABELS = {
-  INNER: 'INNER JOIN',
-  LEFT: 'LEFT JOIN',
-  RIGHT: 'RIGHT JOIN',
-  FULL: 'FULL OUTER JOIN',
-};
+import { dataset, JOIN_LABELS } from './steps.js';
 
 function formatCell(value) {
   return value === null || value === undefined ? 'NULL' : String(value);
@@ -841,10 +834,17 @@ export const steps = [
   },
   {
     id: 'return-handle',
-    caption: 'handle 執行完畢，回到 main。三塊 heap 空間沒有人主動釋放，繼續留著。',
+    caption: 'handle 執行完畢，回到 main，順便把三個指標交回來。三塊 heap 空間沒有人主動釋放，繼續留著。',
     duration: 2200,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: false },
         { id: 'rows', label: 'rows', size: '2 MB', freed: false },
@@ -857,7 +857,14 @@ export const steps = [
     caption: 'main 呼叫 free(photo)，這塊 heap 才真正釋放。',
     duration: 2000,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: true },
         { id: 'rows', label: 'rows', size: '2 MB', freed: false },
@@ -870,7 +877,14 @@ export const steps = [
     caption: 'main 呼叫 free(rows)。',
     duration: 1800,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: true },
         { id: 'rows', label: 'rows', size: '2 MB', freed: true },
@@ -883,7 +897,14 @@ export const steps = [
     caption: 'main 呼叫 free(pixels)，三塊 heap 空間全部釋放完畢。',
     duration: 2000,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: true },
         { id: 'rows', label: 'rows', size: '2 MB', freed: true },
@@ -1056,6 +1077,8 @@ function buildLeastConnectionsSteps() {
       }
     });
 
+    const beforeActive = { ...active }; // 分配前的連線數快照，caption 說明「為什麼選這個節點」要用這份，不能用分配後的
+
     let chosenNode = nodes[0];
     nodes.forEach((n) => {
       if (active[n] < active[chosenNode]) chosenNode = n;
@@ -1066,8 +1089,8 @@ function buildLeastConnectionsSteps() {
 
     steps.push({
       id: `lc-${req.id}`,
-      caption: `Least Connections：請求 #${req.id} 分配給連線數最少的 ${chosenNode}（目前各節點連線數：${nodes
-        .map((n) => `${n}=${active[n]}`)
+      caption: `Least Connections：請求 #${req.id} 分配給連線數最少的 ${chosenNode}（分配前各節點連線數：${nodes
+        .map((n) => `${n}=${beforeActive[n]}`)
         .join(', ')}）`,
       duration: 1600,
       data: { algorithm: 'Least Connections', assigned: assigned.slice(), activeCounts: { ...active } },
@@ -1428,7 +1451,7 @@ export const steps = [
 
 ```js
 const RADIUS = 120;
-const CENTER = 140;
+const CENTER = 160;
 
 function pointOnCircle(pos) {
   const angle = (pos / 360) * 2 * Math.PI - Math.PI / 2; // 0 度對應正上方
@@ -1460,7 +1483,7 @@ export function render(step, stage) {
     .join('');
 
   stage.innerHTML = `
-    <svg viewBox="0 0 280 280" width="280" height="280" style="display:block; margin:0 auto;">
+    <svg viewBox="0 0 320 320" width="320" height="320" style="display:block; margin:0 auto;">
       <circle cx="${CENTER}" cy="${CENTER}" r="${RADIUS}" fill="none" stroke="var(--bs-border-color)" stroke-width="2" />
       ${nodeMarks}
       ${keyMarks}

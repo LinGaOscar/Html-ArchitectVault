@@ -48,6 +48,8 @@ function buildLeastConnectionsSteps() {
       }
     });
 
+    const beforeActive = { ...active }; // 分配前的連線數快照，caption 說明「為什麼選這個節點」要用這份，不能用分配後的
+
     let chosenNode = nodes[0];
     nodes.forEach((n) => {
       if (active[n] < active[chosenNode]) chosenNode = n;
@@ -58,8 +60,8 @@ function buildLeastConnectionsSteps() {
 
     steps.push({
       id: `lc-${req.id}`,
-      caption: `Least Connections：請求 #${req.id} 分配給連線數最少的 ${chosenNode}（目前各節點連線數：${nodes
-        .map((n) => `${n}=${active[n]}`)
+      caption: `Least Connections：請求 #${req.id} 分配給連線數最少的 ${chosenNode}（分配前各節點連線數：${nodes
+        .map((n) => `${n}=${beforeActive[n]}`)
         .join(', ')}）`,
       duration: 1600,
       data: { algorithm: 'Least Connections', assigned: assigned.slice(), activeCounts: { ...active } },

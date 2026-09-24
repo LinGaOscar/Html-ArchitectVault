@@ -163,10 +163,17 @@ export const steps = [
   },
   {
     id: 'return-handle',
-    caption: 'handle 執行完畢，回到 main。三塊 heap 空間沒有人主動釋放，繼續留著。',
+    caption: 'handle 執行完畢，回到 main，順便把三個指標交回來。三塊 heap 空間沒有人主動釋放，繼續留著。',
     duration: 2200,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: false },
         { id: 'rows', label: 'rows', size: '2 MB', freed: false },
@@ -179,7 +186,14 @@ export const steps = [
     caption: 'main 呼叫 free(photo)，這塊 heap 才真正釋放。',
     duration: 2000,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: true },
         { id: 'rows', label: 'rows', size: '2 MB', freed: false },
@@ -192,7 +206,14 @@ export const steps = [
     caption: 'main 呼叫 free(rows)。',
     duration: 1800,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: true },
         { id: 'rows', label: 'rows', size: '2 MB', freed: true },
@@ -205,7 +226,14 @@ export const steps = [
     caption: 'main 呼叫 free(pixels)，三塊 heap 空間全部釋放完畢。',
     duration: 2000,
     data: {
-      stack: [{ name: 'main', locals: [] }],
+      stack: [{
+        name: 'main',
+        locals: [
+          { name: 'photo', value: '→ photo (heap)' },
+          { name: 'rows', value: '→ rows (heap)' },
+          { name: 'pixels', value: '→ pixels (heap)' },
+        ],
+      }],
       heap: [
         { id: 'photo', label: 'photo', size: '4 MB', freed: true },
         { id: 'rows', label: 'rows', size: '2 MB', freed: true },

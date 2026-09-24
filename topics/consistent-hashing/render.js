@@ -1,5 +1,5 @@
 const RADIUS = 120;
-const CENTER = 140;
+const CENTER = 160;
 
 function pointOnCircle(pos) {
   const angle = (pos / 360) * 2 * Math.PI - Math.PI / 2; // 0 度對應正上方
@@ -31,7 +31,7 @@ export function render(step, stage) {
     .join('');
 
   stage.innerHTML = `
-    <svg viewBox="0 0 280 280" width="280" height="280" style="display:block; margin:0 auto;">
+    <svg viewBox="0 0 320 320" width="320" height="320" style="display:block; margin:0 auto;">
       <circle cx="${CENTER}" cy="${CENTER}" r="${RADIUS}" fill="none" stroke="var(--bs-border-color)" stroke-width="2" />
       ${nodeMarks}
       ${keyMarks}

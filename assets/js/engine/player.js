@@ -8,7 +8,7 @@ export function initPlayer({ steps, render, mount }) {
   mount.innerHTML = `
     <div class="player">
       <div class="stage" id="stage"></div>
-      <p class="caption" id="caption"></p>
+      <p class="caption" id="caption" aria-live="polite"></p>
       <div class="transport">
         <button type="button" data-action="prev" aria-label="上一步">⏮</button>
         <button type="button" data-action="play-pause" aria-label="播放">▶</button>
@@ -87,7 +87,6 @@ export function initPlayer({ steps, render, mount }) {
 
   document.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
-      event.preventDefault();
       if (playing) pause();
       else play();
     } else if (event.code === 'ArrowLeft') {
