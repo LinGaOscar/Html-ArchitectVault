@@ -1,0 +1,120 @@
+/* 全站共用樣式：只寫語意化樣式，色值/尺寸一律引用 tokens.css 的變數。 */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-family: var(--bs-font-sans-serif);
+  line-height: 1.6;
+}
+
+a { color: var(--bs-info); }
+
+/* 首頁：分類卡片牆 */
+.page { max-width: 960px; margin: 0 auto; padding: var(--bs-spacer-4); }
+.page-title { font-size: 1.75rem; margin-bottom: var(--bs-spacer-2); }
+.page-subtitle { color: var(--bs-secondary-color); margin-bottom: var(--bs-spacer-4); }
+
+.topic-section { margin-bottom: var(--bs-spacer-5); }
+.topic-section h2 {
+  font-size: 1.1rem;
+  color: var(--bs-secondary-color);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: var(--bs-spacer-3);
+}
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--bs-spacer-3);
+}
+.topic-card {
+  display: block;
+  padding: var(--bs-spacer-3);
+  background: var(--bs-secondary-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s ease, background .15s ease;
+}
+.topic-card:hover {
+  border-color: var(--bs-primary);
+  background: var(--bs-tertiary-bg);
+}
+.topic-card h3 { margin: 0 0 var(--bs-spacer-1); font-size: 1rem; color: var(--bs-primary); }
+.topic-card p { margin: 0; font-size: .875rem; color: var(--bs-secondary-color); }
+
+/* 主題頁外殼 */
+.topic-page { max-width: 720px; margin: 0 auto; padding: var(--bs-spacer-4); }
+.topic-page .back-link { display: inline-block; margin-bottom: var(--bs-spacer-3); font-size: .875rem; }
+.topic-page h1 { font-size: 1.5rem; margin-bottom: var(--bs-spacer-4); }
+
+/* 共用播放器（由 assets/js/engine/player.js 注入到 mount 節點內） */
+.player { display: flex; flex-direction: column; gap: var(--bs-spacer-3); }
+.stage {
+  min-height: 320px;
+  padding: var(--bs-spacer-3);
+  background: var(--bs-secondary-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  font-family: var(--bs-font-monospace);
+  font-size: .875rem;
+  overflow-x: auto;
+}
+.caption { min-height: 2.5em; margin: 0; color: var(--bs-body-color); }
+.transport { display: flex; align-items: center; gap: var(--bs-spacer-2); }
+.transport button {
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  padding: var(--bs-spacer-1) var(--bs-spacer-2);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+.transport button:hover { border-color: var(--bs-primary); }
+.transport .scrubber { flex: 1; accent-color: var(--bs-primary); }
+
+/* Stage 內容共用元件（各主題 render.js 會用到） */
+.grid-table { border-collapse: collapse; width: 100%; }
+.grid-table caption { text-align: left; color: var(--bs-secondary-color); margin-bottom: var(--bs-spacer-1); font-family: var(--bs-font-sans-serif); }
+.grid-table th, .grid-table td { border: 1px solid var(--bs-border-color); padding: var(--bs-spacer-1) var(--bs-spacer-2); text-align: left; }
+.grid-table th { color: var(--bs-secondary-color); font-weight: normal; }
+
+.row-highlight { background: color-mix(in srgb, var(--bs-primary) 25%, transparent); }
+.row-null { color: var(--bs-secondary-color); font-style: italic; }
+
+.mem-frame {
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  padding: var(--bs-spacer-2);
+  margin-bottom: var(--bs-spacer-2);
+  background: var(--bs-tertiary-bg);
+}
+.mem-frame-active { border-color: var(--bs-primary); }
+.mem-row { display: flex; justify-content: space-between; gap: var(--bs-spacer-2); padding: 2px 0; }
+.mem-heap-block {
+  display: inline-block;
+  padding: var(--bs-spacer-1) var(--bs-spacer-2);
+  border: 1px solid var(--bs-warning);
+  border-radius: var(--bs-border-radius-sm);
+  background: color-mix(in srgb, var(--bs-warning) 15%, transparent);
+  margin: 2px;
+}
+
+.node {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  height: 48px;
+  padding: 0 var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-tertiary-bg);
+  text-align: center;
+}
+.node-active { border-color: var(--bs-primary); }

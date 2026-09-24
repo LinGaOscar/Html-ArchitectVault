@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>系統設計動畫參考站</title>
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/base.css">
+</head>
+<body>
+  <main class="page">
+    <h1 class="page-title">系統設計動畫參考站</h1>
+    <p class="page-subtitle">給系統架構師的互動動畫參考，播放、暫停、單步、拖曳時間軸，逐步看懂每個概念。</p>
+
+    <section class="topic-section">
+      <h2>基礎篇</h2>
+      <div class="topic-grid">
+        <a class="topic-card" href="./topics/sql-joins/">
+          <h3>SQL Joins</h3>
+          <p>INNER / LEFT / RIGHT / FULL OUTER JOIN 逐步套用</p>
+        </a>
+        <a class="topic-card" href="./topics/stack-vs-heap/">
+          <h3>Stack vs Heap</h3>
+          <p>函式呼叫時堆疊與堆積的記憶體配置過程</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="topic-section">
+      <h2>系統設計篇</h2>
+      <div class="topic-grid">
+        <a class="topic-card" href="./topics/load-balancer/">
+          <h3>Load Balancer</h3>
+          <p>Round Robin / Least Connections 兩種分配演算法</p>
+        </a>
+        <a class="topic-card" href="./topics/cache-strategies/">
+          <h3>Cache 讀寫策略</h3>
+          <p>Cache-Aside / Write-Through / Write-Back</p>
+        </a>
+        <a class="topic-card" href="./topics/consistent-hashing/">
+          <h3>Consistent Hashing</h3>
+          <p>一致性雜湊環，新增/移除節點只影響鄰近區段</p>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

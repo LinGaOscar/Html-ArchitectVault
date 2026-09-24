@@ -1,0 +1,37 @@
+/*
+ * 視覺設計 Token。變數命名比照 ~/.claude/guides/templates/tokens.css 的
+ * Bootstrap 風格命名，但色值改為深色主題——呼應參考影片的深色終端機風格。
+ */
+:root {
+  --bs-body-bg: #0B0F17;
+  --bs-body-color: #E6EDF7;
+  --bs-secondary-color: #8B98AD;
+  --bs-border-color: #232B3A;
+
+  --bs-secondary-bg: #121826;
+  --bs-tertiary-bg: #1A2233;
+
+  --bs-primary: #4EE0C1;
+  --bs-info: #5B9DF0;
+  --bs-success: #4EE0C1;
+  --bs-warning: #E0B24E;
+  --bs-danger: #E06B5B;
+
+  --bs-border-radius-sm: 4px;
+  --bs-border-radius: 8px;
+  --bs-border-radius-lg: 12px;
+
+  --bs-box-shadow: none;
+  --bs-box-shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
+
+  --bs-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --bs-font-monospace: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --bs-spacer: 1rem;
+  --bs-spacer-0: 0;
+  --bs-spacer-1: .25rem;
+  --bs-spacer-2: .5rem;
+  --bs-spacer-3: 1rem;
+  --bs-spacer-4: 1.5rem;
+  --bs-spacer-5: 3rem;
+}
