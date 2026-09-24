@@ -397,7 +397,9 @@ export function initPlayer({ steps, render, mount }) {
   });
 
   document.addEventListener('keydown', (event) => {
+    const isPlayerControl = event.target === playPauseBtn || event.target === prevBtn || event.target === nextBtn || event.target === scrubberEl;
     if (event.code === 'Space') {
+      if (isPlayerControl) return; // 焦點在播放器自己的控制項上時交給瀏覽器原生行為（按鈕的 click、scrubber 的預設行為），避免我們的邏輯又觸發一次造成雙重切換互相抵銷
       if (playing) pause();
       else play();
     } else if (event.code === 'ArrowLeft') {
@@ -834,7 +836,7 @@ export const steps = [
   },
   {
     id: 'return-handle',
-    caption: 'handle 執行完畢，回到 main，順便把三個指標交回來。三塊 heap 空間沒有人主動釋放，繼續留著。',
+    caption: 'handle 執行完畢，回到 main。三塊 heap 空間沒有人主動釋放，繼續留著。',
     duration: 2200,
     data: {
       stack: [{

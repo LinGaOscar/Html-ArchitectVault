@@ -163,7 +163,7 @@ export const steps = [
   },
   {
     id: 'return-handle',
-    caption: 'handle 執行完畢，回到 main，順便把三個指標交回來。三塊 heap 空間沒有人主動釋放，繼續留著。',
+    caption: 'handle 執行完畢，回到 main。三塊 heap 空間沒有人主動釋放，繼續留著。',
     duration: 2200,
     data: {
       stack: [{
