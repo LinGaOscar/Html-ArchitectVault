@@ -6,12 +6,28 @@
   <title>Cache 讀寫策略 - 系統設計動畫參考站</title>
   <link rel="stylesheet" href="../../assets/css/tokens.css">
   <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="topic-page">
+  <main class="topic-page topic-page-wide">
     <a class="back-link" href="../../index.html">← 返回首頁</a>
     <h1>Cache 讀寫策略</h1>
+    <section class="lesson-intro">
+      <p>把常讀的資料放進 Cache 可以減輕 DB 的負擔。問題是資料被改寫時，Cache 和 DB 該由誰先更新、什麼時候更新？這個選擇決定寫入快不快、讀到的資料新不新，以及 Cache 故障時會不會掉資料。</p>
+      <p class="lesson-watch">三個面板收到同一串操作，key 都是 user:1，起始時 DB 存 v1、Cache 是空的。留意每個請求牌先飛到哪裡、Cache 的值怎麼變，以及 DB 區的讀寫次數最後差多少。</p>
+    </section>
     <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>Cache-Aside</dt>
+        <dd>由應用程式管 Cache。讀取 miss 時自己回源 DB 並回填；寫入時先寫 DB，再把 Cache 的舊值刪除（invalidate）。刪除而不是更新，是因為下一次讀取會從 DB 載入最新值。代價是寫入後的第一次讀取一定 miss，會多打一次 DB。</dd>
+        <dt>Write-Through</dt>
+        <dd>寫入時同步寫 Cache 與 DB，兩邊都完成才回應，所以 Cache 與 DB 保持一致，也不會因 Cache 故障掉資料。代價是每次寫入都要等 DB。</dd>
+        <dt>Write-Back（Write-Behind）</dt>
+        <dd>寫入只寫 Cache 並標 dirty，立刻回應，之後再批次 flush 到 DB。寫入最快，多次寫入同一個 key 還能合併成一次 DB 寫入。代價是 flush 之前 DB 落後 Cache，若 Cache 此時故障，尚未寫回的資料就遺失。</dd>
+      </dl>
+    </section>
   </main>
   <script type="module">
     import { initPlayer } from '../../assets/js/engine/player.js';

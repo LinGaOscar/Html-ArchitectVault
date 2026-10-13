@@ -1,0 +1,120 @@
+/* SQL Joins 主題專屬樣式；共用的 .flow-col、.delta、.grid-table 等在 assets/css/base.css */
+/* 舞台：四種 JOIN 各一個面板，桌機 2×2；游標與結果列是疊在版面上的常駐元素，靠 transform 移動 */
+.sj-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bs-spacer-4) var(--bs-spacer-3); }
+.sj-panel { min-width: 0; }
+.sj-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--bs-spacer-2); }
+.sj-title { margin: 0; font-size: 1.0625rem; }
+.sj-count { color: var(--bs-secondary-color); font-size: .8125rem; white-space: nowrap; }
+.sj-count b { color: var(--bs-body-color); }
+.sj-count .delta { display: inline-block; }
+.sj-rule { margin: 0 0 var(--bs-spacer-2); color: var(--bs-secondary-color); font-size: .8125rem; }
+/* 每個面板附上對應的 SQL（共用 .snippet）：四段語法只差 JOIN 關鍵字，讀者才能把畫面上的行為對回自己會寫的語法 */
+.sj-on { color: var(--bs-body-color); }
+.sj-scene { position: relative; }
+.sj-narrow { display: none; }
+
+.sj-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 3fr);
+  grid-template-areas: "in out" "proc out";
+  gap: var(--bs-spacer-2);
+}
+.sj-in { grid-area: in; }
+.sj-proc { grid-area: proc; }
+.sj-out { grid-area: out; }
+.sj-tables { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); column-gap: 2rem; }
+.sj-verdict { min-height: 2.8em; margin: 0; color: var(--bs-body-color); font-size: .8125rem; }
+
+.sj-table { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sj-tname { color: var(--bs-secondary-color); font-size: .75rem; }
+.sj-row {
+  display: grid;
+  align-items: center;
+  height: 1.5rem;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: var(--bs-border-radius-sm);
+  font-size: .8125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background-color .3s ease, border-color .3s ease, color .3s ease;
+}
+.sj-users .sj-row { grid-template-columns: 2em minmax(0, 1fr) 1em; }
+.sj-orders .sj-row { grid-template-columns: 2em minmax(0, 1.2fr) minmax(0, 1fr) 1em; }
+.sj-result .sj-row, .sj-token { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sj-headrow { height: 1.125rem; color: var(--bs-secondary-color); font-size: .6875rem; }
+.sj-slot { border: 1px dashed var(--bs-border-color); }
+.sj-mark { text-align: right; }
+.sj-null { color: var(--bs-warning); }
+
+/* 列的狀態：current 是游標正在比對，hit 是被找到的配對，ok 配對完成，keep 保留並補 NULL，drop 被丟掉 */
+.sj-row[data-state="current"] { background: color-mix(in srgb, var(--bs-primary) 14%, transparent); }
+.sj-row[data-state="hit"] { border-color: color-mix(in srgb, var(--bs-success) 70%, transparent); background: color-mix(in srgb, var(--bs-success) 10%, transparent); }
+.sj-row[data-state="ok"] { background: color-mix(in srgb, var(--bs-success) 14%, transparent); }
+.sj-row[data-state="ok"] .sj-mark { color: var(--bs-success); }
+.sj-row[data-state="keep"] { background: color-mix(in srgb, var(--bs-warning) 20%, transparent); }
+.sj-row[data-state="keep"] .sj-mark { color: var(--bs-warning); }
+.sj-row[data-state="drop"] { background: color-mix(in srgb, var(--bs-danger) 18%, transparent); color: var(--bs-secondary-color); }
+.sj-row[data-state="drop"] .sj-mark { color: var(--bs-danger); }
+
+.sj-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.sj-wire { fill: none; stroke: transparent; stroke-width: 2; transition: stroke .3s ease; }
+.sj-wire.is-active { stroke: var(--bs-primary); }
+.sj-wire.is-done { stroke: color-mix(in srgb, var(--bs-success) 45%, transparent); }
+
+.sj-overlay { position: absolute; inset: 0; pointer-events: none; }
+.sj-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--bs-primary);
+  border-radius: var(--bs-border-radius-sm);
+  opacity: 0;
+  transition: transform .5s cubic-bezier(.3, 1.2, .5, 1), width .5s ease, height .5s ease, opacity .3s ease;
+}
+.sj-token {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 4px;
+  border: 1px solid var(--bs-success);
+  border-radius: var(--bs-border-radius-sm);
+  background: color-mix(in srgb, var(--bs-success) 22%, var(--bs-secondary-bg));
+  font-size: .8125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  will-change: transform;
+  transition: opacity .35s ease, box-shadow .3s ease;
+}
+.sj-token-null { border-color: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 22%, var(--bs-secondary-bg)); }
+.sj-token.is-new { box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-primary) 35%, transparent); }
+.sj-token.is-gone { opacity: 0; }
+
+.sj-compare .sj-title { display: block; margin-bottom: var(--bs-spacer-3); }
+.sj-compare-table { font-family: var(--bs-font-sans-serif); }
+.sj-keep { color: var(--bs-warning); }
+.sj-drop { color: var(--bs-danger); }
+
+/* 手機：四個面板單欄堆疊，每個面板內的三張表仍然橫排，所以字與格子都縮小 */
+@media (max-width: 760px) {
+  .sj-panels { grid-template-columns: minmax(0, 1fr); gap: var(--bs-spacer-3); }
+  .sj-wide, .flow-col h4 small { display: none; }
+  .sj-narrow { display: inline; }
+  .sj-title { font-size: .9375rem; }
+  .sj-count { font-size: .75rem; }
+  .sj-rule { font-size: .6875rem; }
+  .sj-grid { gap: var(--bs-spacer-1); }
+  .sj-panel .flow-col { padding: var(--bs-spacer-1); }
+  .sj-panel .flow-col h4 { margin-bottom: var(--bs-spacer-1); font-size: .75rem; }
+  .sj-tables { column-gap: 14px; }
+  .sj-row, .sj-token { height: 1.25rem; padding: 0 2px; font-size: .625rem; }
+  .sj-headrow { height: 1rem; font-size: .5625rem; }
+  .sj-tname { font-size: .625rem; }
+  .sj-verdict { min-height: 4.2em; font-size: .6875rem; }
+  .sj-compare-table { font-size: .6875rem; }
+  .sj-compare-table th, .sj-compare-table td { padding: var(--bs-spacer-1); }
+}

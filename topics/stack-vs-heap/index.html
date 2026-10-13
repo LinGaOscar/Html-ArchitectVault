@@ -6,12 +6,30 @@
   <title>Stack vs Heap - 系統設計動畫參考站</title>
   <link rel="stylesheet" href="../../assets/css/tokens.css">
   <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="topic-page">
+  <main class="topic-page topic-page-wide">
     <a class="back-link" href="../../index.html">← 返回首頁</a>
     <h1>Stack vs Heap</h1>
+    <section class="lesson-intro">
+      <p>程式執行時，區域變數和 malloc 要來的空間放在記憶體的兩個不同區域。Stack 隨著函式呼叫自動配置、自動回收；Heap 要程式自己配置、自己釋放。分不清兩者的生命週期，就會寫出 memory leak。</p>
+      <p class="lesson-watch">留意三件事：函式 return 時 stack 的 frame 怎麼在沒有任何清理程式碼的情況下消失；heap 區塊在配置它的函式結束後仍然留在原地；最後有哪一塊 heap 沒人指著，也沒被 free。</p>
+    </section>
     <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>Stack frame</dt>
+        <dd>每次呼叫函式就疊上一個 frame，放這次呼叫的參數與區域變數。函式 return 時整個 frame 自動回收，不需要任何清理程式碼，也因此區域變數活不過它所在的函式。</dd>
+        <dt>Heap</dt>
+        <dd>用 malloc 向配置器要一塊空間，直到呼叫 free 才還回去。它的壽命和函式呼叫無關，所以能在 load 裡配置、在 main 裡使用。代價是誰負責 free 要由程式自己約定清楚。</dd>
+        <dt>Memory leak</dt>
+        <dd>heap 區塊還沒 free，卻已經沒有任何變數保有它的地址，就再也無法釋放。範例裡 work 的 frame 一消失，唯一指著 2 MB 區塊的 t 也跟著消失，這塊空間在程式結束前都無法回收。</dd>
+        <dt>常見的避免方式</dt>
+        <dd>約定由配置的一方或接手的一方負責 free，並讓 malloc 與 free 成對出現。有垃圾回收的語言，或 C++ 的智慧指標，會替你處理這件事。</dd>
+      </dl>
+    </section>
   </main>
   <script type="module">
     import { initPlayer } from '../../assets/js/engine/player.js';

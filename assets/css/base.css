@@ -52,8 +52,9 @@ a { color: var(--bs-info); }
 .topic-page h1 { font-size: 1.5rem; margin-bottom: var(--bs-spacer-4); }
 
 /* 共用播放器（由 assets/js/engine/player.js 注入到 mount 節點內） */
-.player { display: flex; flex-direction: column; gap: var(--bs-spacer-3); }
+.player { display: flex; flex-direction: column; gap: var(--bs-spacer-2); }
 .stage {
+  order: 1; /* 舞台排在說明與控制列之後：舞台很高時，這兩樣仍然留在第一屏看得到 */
   min-height: 320px;
   padding: var(--bs-spacer-3);
   background: var(--bs-secondary-bg);
@@ -64,7 +65,7 @@ a { color: var(--bs-info); }
   overflow-x: auto;
 }
 .stage h3, .stage p { font-family: var(--bs-font-sans-serif); }
-.caption { min-height: 2.5em; margin: 0; color: var(--bs-body-color); }
+.caption { min-height: 3.2em; margin: 0; color: var(--bs-body-color); }
 .transport { display: flex; align-items: center; gap: var(--bs-spacer-2); }
 .transport button {
   background: var(--bs-tertiary-bg);
@@ -119,3 +120,84 @@ a { color: var(--bs-info); }
   text-align: center;
 }
 .node-active { border-color: var(--bs-primary); }
+
+/* 章節列與步數：讓讀者知道現在在整段教學的哪裡、還剩多少 */
+.chapters { display: flex; flex-wrap: wrap; gap: var(--bs-spacer-2); }
+.chapters button {
+  background: transparent;
+  color: var(--bs-secondary-color);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  padding: var(--bs-spacer-1) var(--bs-spacer-2);
+  cursor: pointer;
+  font: inherit;
+  font-size: .875rem;
+}
+.chapters button:hover { border-color: var(--bs-primary); }
+.chapters button[aria-current] { color: var(--bs-body-bg); background: var(--bs-primary); border-color: var(--bs-primary); }
+.step-counter { color: var(--bs-secondary-color); font-size: .875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* 主題頁的教學文字：動畫前說明要解決的問題，動畫後收斂成結論 */
+.lesson-intro { margin-bottom: var(--bs-spacer-4); }
+.lesson-intro p { margin: 0 0 var(--bs-spacer-2); }
+.lesson-watch { color: var(--bs-secondary-color); }
+.lesson-summary { margin-top: var(--bs-spacer-5); }
+.lesson-summary h2 { font-size: 1.1rem; margin-bottom: var(--bs-spacer-3); }
+.lesson-summary dt { color: var(--bs-primary); font-weight: 600; }
+.lesson-summary dd { margin: 0 0 var(--bs-spacer-3); color: var(--bs-secondary-color); }
+
+[hidden] { display: none !important; }
+
+/* 舞台內的小標籤（請求、資料列等）。變色與淡出都用 transition，狀態改變時才會是連續的 */
+.chip {
+  display: inline-block;
+  padding: 2px var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+  font-size: .875rem;
+  transition: border-color .3s ease, background-color .3s ease, box-shadow .3s ease, opacity .35s ease, transform .35s ease;
+}
+.chip-long { border-color: var(--bs-warning); }
+.delta s { color: var(--bs-secondary-color); }
+.delta b { color: var(--bs-primary); }
+
+/* 面板附帶的程式碼／語法片段：讓讀者把畫面上的行為對回實際會寫的程式 */
+.snippet {
+  margin: 0 0 var(--bs-spacer-2);
+  padding: var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-body-bg);
+  color: var(--bs-secondary-color);
+  font-family: var(--bs-font-monospace);
+  font-size: .8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.snippet b { color: var(--bs-primary); }
+.snippet i { color: var(--bs-secondary-color); font-style: normal; opacity: .7; }
+
+/* 輸入 → 處理 → 輸出：資料由上往下流，段與段之間的空隙留給連接線 */
+.flow { display: flex; flex-direction: column; gap: 26px; }
+.flow-col {
+  padding: var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-tertiary-bg);
+}
+.flow-col h4 { margin: 0 0 var(--bs-spacer-2); font-family: var(--bs-font-sans-serif); font-size: .9375rem; }
+.flow-col-inline { display: flex; align-items: center; gap: var(--bs-spacer-3); } /* 內容只有一排時，標題和內容排同一列，省下垂直空間 */
+.flow-col-inline h4 { flex: none; margin: 0; }
+.flow-col-inline h4 small { display: none; }
+.flow-col h4 small { margin-left: var(--bs-spacer-1); color: var(--bs-secondary-color); font-weight: normal; font-size: .75rem; }
+
+/* 需要並排比較的主題用寬版頁面，兩個面板才放得下 */
+.topic-page-wide { max-width: 1080px; }
+
+@media (max-width: 760px) {
+  .topic-page { padding: var(--bs-spacer-3); }
+  .snippet { padding: var(--bs-spacer-1); font-size: .625rem; }
+  .stage { padding: var(--bs-spacer-2); }
+}

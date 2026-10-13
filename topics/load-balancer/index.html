@@ -6,12 +6,26 @@
   <title>Load Balancer - 系統設計動畫參考站</title>
   <link rel="stylesheet" href="../../assets/css/tokens.css">
   <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="topic-page">
+  <main class="topic-page topic-page-wide">
     <a class="back-link" href="../../index.html">← 返回首頁</a>
     <h1>Load Balancer</h1>
+    <section class="lesson-intro">
+      <p>一台伺服器扛不住所有流量時，會在前面放一個 Load Balancer，把進來的請求分給後面多台伺服器。問題是：下一個請求該給誰？</p>
+      <p class="lesson-watch">左右兩邊收到的是同一批請求。留意哪一步開始兩邊選的不一樣，以及橘框的長連線最後堆在哪一台。</p>
+    </section>
     <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>Round Robin</dt>
+        <dd>照順序輪流，不需要知道後端狀態，實作最簡單。每個請求耗時差不多時夠用；有長有短時，可能把新請求塞給還在忙的那台。</dd>
+        <dt>Least Connections</dt>
+        <dd>每次給連線最少的那台，負載比較平均，適合連線時間長短不一的服務（例如 WebSocket、長查詢）。代價是 Load Balancer 得持續追蹤每台的連線數。</dd>
+      </dl>
+    </section>
   </main>
   <script type="module">
     import { initPlayer } from '../../assets/js/engine/player.js';

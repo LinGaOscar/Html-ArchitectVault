@@ -1,0 +1,181 @@
+/* Stack vs Heap 主題專屬樣式；共用的 .flow、.flow-col、.delta、.grid-table 等在 assets/css/base.css */
+/* 舞台：程式碼在上，處理在中，stack 與 heap 並排在下；frame、區塊、連線是疊在版面上的常駐元素 */
+.sh-run {
+  --sh-lh: 1.375rem; /* 程式碼每行高度，高亮條要跟它一樣高 */
+  --sh-area: 9.5rem; /* stack 與 heap 的可用高度，必須放得下 main + work 兩層 frame */
+  position: relative;
+}
+.sh-run.is-snap *, .sh-run.is-snap *::before { transition: none !important; }
+.sh-narrow { display: none; }
+.sh-title { margin: 0 0 var(--bs-spacer-3); font-size: 1.0625rem; }
+
+.sh-code { position: relative; padding: 2px 0; font-size: .875rem; }
+.sh-hl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--sh-lh);
+  border-left: 3px solid var(--bs-primary);
+  border-radius: var(--bs-border-radius-sm);
+  background: color-mix(in srgb, var(--bs-primary) 18%, transparent);
+  opacity: 0;
+  transition: transform .45s cubic-bezier(.3, 1.2, .5, 1), opacity .3s ease;
+}
+.sh-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--bs-spacer-3);
+  height: var(--sh-lh);
+  padding: 0 var(--bs-spacer-2);
+  color: var(--bs-secondary-color);
+  transition: color .3s ease;
+}
+.sh-line.is-current { color: var(--bs-body-color); }
+.sh-ln { width: 1.25rem; text-align: right; opacity: .55; }
+.sh-src { white-space: pre; }
+
+.sh-verdict { display: flex; flex-wrap: wrap; align-items: center; gap: var(--bs-spacer-1) var(--bs-spacer-2); min-height: 3.4em; }
+.sh-tag {
+  padding: 1px var(--bs-spacer-2);
+  border: 1px solid currentColor;
+  border-radius: var(--bs-border-radius-sm);
+  color: var(--bs-secondary-color);
+  font-family: var(--bs-font-sans-serif);
+  font-size: .8125rem;
+  transition: color .3s ease;
+}
+.sh-tag[data-kind="call"], .sh-tag[data-kind="return"] { color: var(--bs-info); }
+.sh-tag[data-kind="malloc"] { color: var(--bs-warning); }
+.sh-tag[data-kind="assign"] { color: var(--bs-primary); }
+.sh-tag[data-kind="free"] { color: var(--bs-success); }
+.sh-phase { color: var(--bs-secondary-color); font-size: .75rem; font-family: var(--bs-font-sans-serif); }
+.sh-vtext { flex-basis: 100%; margin: 0; font-size: .875rem; }
+
+.sh-mem { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3rem; }
+.sh-side { min-width: 0; }
+.sh-sidehead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--bs-spacer-1); font-family: var(--bs-font-sans-serif); font-size: .8125rem; color: var(--bs-secondary-color); }
+.sh-sidehead h5 { margin: 0; color: var(--bs-body-color); font-size: .9375rem; letter-spacing: .05em; }
+.sh-sidehead b { color: var(--bs-body-color); }
+.sh-ctr { display: inline-block; }
+.sh-foot { margin: var(--bs-spacer-1) 0 0; color: var(--bs-secondary-color); font-size: .75rem; }
+.sh-foot b { color: var(--bs-body-color); }
+.sh-leaked.is-bad b { color: var(--bs-danger); }
+
+.sh-stack {
+  position: relative;
+  height: var(--sh-area);
+  border: 1px dashed var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-secondary-bg);
+}
+.sh-frame {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: 3px var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-tertiary-bg);
+  opacity: 0;
+  will-change: transform;
+  transition: transform .55s cubic-bezier(.3, 1.2, .5, 1), opacity .45s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.sh-frame[data-status="live"] { opacity: 1; }
+.sh-frame.is-top { border-color: var(--bs-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-primary) 22%, transparent); }
+.sh-fhead { display: flex; align-items: center; height: 1.5rem; font-family: var(--bs-font-sans-serif); font-size: .8125rem; font-weight: bold; }
+.sh-var {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 4px;
+  border-radius: var(--bs-border-radius-sm);
+  color: var(--bs-secondary-color);
+  font-size: .8125rem;
+  transition: background-color .5s ease, color .3s ease;
+}
+.sh-var.is-set .sh-vv { color: var(--bs-primary); }
+.sh-var.is-new { background: color-mix(in srgb, var(--bs-primary) 20%, transparent); }
+
+.sh-heap { position: relative; height: var(--sh-area); }
+.sh-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  gap: 3px;
+}
+.sh-cell { border: 1px dashed var(--bs-border-color); border-radius: var(--bs-border-radius-sm); background: var(--bs-secondary-bg); }
+
+.sh-blocks { position: absolute; inset: 0; pointer-events: none; }
+.sh-block {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: space-between;
+  gap: 0 var(--bs-spacer-1);
+  padding: 2px 6px;
+  border: 1px solid var(--bs-warning);
+  border-radius: var(--bs-border-radius-sm);
+  background: color-mix(in srgb, var(--bs-warning) 18%, var(--bs-secondary-bg));
+  font-size: .75rem;
+  overflow: hidden;
+  will-change: transform;
+  transition: opacity .45s ease, width .5s ease, height .5s ease, border-color .3s ease, background-color .3s ease, box-shadow .3s ease;
+}
+.sh-block[data-state="idle"], .sh-block[data-state="freed"] { opacity: 0; }
+.sh-block[data-state="transit"] { border-style: dashed; border-color: var(--bs-info); background: color-mix(in srgb, var(--bs-info) 14%, var(--bs-secondary-bg)); }
+.sh-block[data-state="leak"] { border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 20%, var(--bs-secondary-bg)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-danger) 25%, transparent); }
+.sh-block.is-new[data-state="live"] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-primary) 35%, transparent); }
+.sh-btag { flex-basis: 100%; font-family: var(--bs-font-sans-serif); font-size: .6875rem; }
+.sh-block[data-state="transit"] .sh-btag { color: var(--bs-info); }
+.sh-block[data-state="leak"] .sh-btag { color: var(--bs-danger); font-weight: bold; }
+
+.sh-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.sh-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease; }
+.sh-wire.is-active { stroke: var(--bs-primary); stroke-dasharray: 6 6; animation: sh-flow .5s linear infinite; }
+@keyframes sh-flow { to { stroke-dashoffset: -12; } }
+.sh-ptr { fill: none; stroke: var(--bs-primary); stroke-width: 2; opacity: 0; transition: opacity .45s ease; }
+.sh-ptr.is-on { opacity: 1; }
+.sh-arrowhead { fill: var(--bs-primary); }
+
+.sh-compare-table { font-family: var(--bs-font-sans-serif); }
+.sh-compare-table tbody th { white-space: nowrap; }
+
+/* 手機：程式碼在上，stack 與 heap 仍然並排（並排才比得出生命週期的差異），所以字與格子都縮小 */
+@media (max-width: 760px) {
+  .sh-run { --sh-lh: 1.125rem; --sh-area: 7.5rem; }
+  .sh-wide, .flow-col h4 small { display: none; }
+  .sh-narrow { display: inline; }
+  .sh-run .flow { gap: 18px; }
+  .sh-run .flow-col { padding: var(--bs-spacer-1); }
+  .sh-run .flow-col h4 { margin-bottom: var(--bs-spacer-1); font-size: .75rem; }
+  .sh-code { font-size: .6875rem; }
+  .sh-line { gap: var(--bs-spacer-2); padding: 0 var(--bs-spacer-1); }
+  .sh-verdict { min-height: 5.2em; }
+  .sh-vtext { font-size: .75rem; }
+  .sh-tag { font-size: .6875rem; }
+  .sh-mem { gap: 14px; }
+  .sh-sidehead { font-size: .6875rem; }
+  .sh-sidehead h5 { font-size: .75rem; }
+  .sh-foot { font-size: .625rem; }
+  .sh-frame { padding: 2px 4px; }
+  .sh-fhead { height: 1.125rem; font-size: .6875rem; }
+  .sh-var { height: 1.125rem; padding: 0 2px; font-size: .625rem; }
+  .sh-block { padding: 1px 3px; font-size: .5625rem; }
+  .sh-btag { font-size: .5625rem; }
+  .sh-grid { gap: 2px; }
+  .sh-compare-table { font-size: .6875rem; }
+  .sh-compare-table th, .sh-compare-table td { padding: var(--bs-spacer-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-wire.is-active { animation: none; }
+}

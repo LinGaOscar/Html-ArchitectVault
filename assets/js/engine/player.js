@@ -1,12 +1,27 @@
-import { renderStep } from './render-loop.js';
-
 // 建立共用播放器：把控制列 UI 整個注入 mount 節點，並依 steps 陣列驅動 render()。
-// steps: Array<{ id, caption, duration, data }>
-// render: (step, stageElement) => void
+// steps: Array<{ id, caption, duration, data, chapter? }>
+// render: (step, stageElement, prevStep) => void
+//   prevStep 是時間軸上的前一步（第一步時為 undefined），讓各主題能標出「這一步變了什麼」。
+//   換步時播放器不做任何轉場；要流暢的主題自己在 stage 裡保留常駐元素，每一步只更新狀態，
+//   讓同一個東西連續地移動、變色，而不是整塊重畫。
 // mount: HTMLElement，播放器 UI 會整個掛在這個節點底下
 export function initPlayer({ steps, render, mount }) {
+  // 章節＝連續且 chapter 相同的一段步驟；沒標 chapter 的主題不顯示章節列
+  const chapters = [];
+  steps.forEach((step, index) => {
+    if (step.chapter && (chapters.length === 0 || chapters[chapters.length - 1].name !== step.chapter)) {
+      chapters.push({ name: step.chapter, index });
+    }
+  });
+  const chaptersHtml = chapters.length
+    ? `<div class="chapters">${chapters
+        .map((c) => `<button type="button" data-chapter-index="${c.index}">${c.name}</button>`)
+        .join('')}</div>`
+    : '';
+
   mount.innerHTML = `
     <div class="player">
+      ${chaptersHtml}
       <div class="stage" id="stage"></div>
       <p class="caption" id="caption" aria-live="polite"></p>
       <div class="transport">
@@ -14,6 +29,7 @@ export function initPlayer({ steps, render, mount }) {
         <button type="button" data-action="play-pause" aria-label="播放">▶</button>
         <button type="button" data-action="next" aria-label="下一步">⏭</button>
         <input type="range" class="scrubber" min="0" max="${steps.length - 1}" value="0" aria-label="時間軸">
+        <span class="step-counter"></span>
       </div>
     </div>
   `;
@@ -24,6 +40,8 @@ export function initPlayer({ steps, render, mount }) {
   const prevBtn = mount.querySelector('[data-action="prev"]');
   const nextBtn = mount.querySelector('[data-action="next"]');
   const scrubberEl = mount.querySelector('.scrubber');
+  const counterEl = mount.querySelector('.step-counter');
+  const chapterBtns = Array.from(mount.querySelectorAll('[data-chapter-index]'));
 
   let currentIndex = 0;
   let playing = false;
@@ -32,9 +50,14 @@ export function initPlayer({ steps, render, mount }) {
   function goTo(index) {
     currentIndex = Math.min(Math.max(index, 0), steps.length - 1);
     const step = steps[currentIndex];
-    renderStep(step, stageEl, render);
+    render(step, stageEl, steps[currentIndex - 1]);
     captionEl.textContent = step.caption;
     scrubberEl.value = String(currentIndex);
+    counterEl.textContent = `${currentIndex + 1} / ${steps.length}`;
+    chapterBtns.forEach((btn) => {
+      if (btn.textContent === step.chapter) btn.setAttribute('aria-current', 'true');
+      else btn.removeAttribute('aria-current');
+    });
   }
 
   function pause() {
@@ -58,7 +81,7 @@ export function initPlayer({ steps, render, mount }) {
   }
 
   function play() {
-    if (currentIndex >= steps.length - 1) return; // 已經在最後一步，沒有下一步可播
+    if (currentIndex >= steps.length - 1) goTo(0); // 自動播放會停在最後一步，這時按播放代表想重看一次
     playing = true;
     playPauseBtn.textContent = '⏸';
     playPauseBtn.setAttribute('aria-label', '暫停');
@@ -85,8 +108,15 @@ export function initPlayer({ steps, render, mount }) {
     goTo(Number(scrubberEl.value));
   });
 
+  chapterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      pause();
+      goTo(Number(btn.dataset.chapterIndex));
+    });
+  });
+
   document.addEventListener('keydown', (event) => {
-    const isPlayerControl = event.target === playPauseBtn || event.target === prevBtn || event.target === nextBtn || event.target === scrubberEl;
+    const isPlayerControl = mount.contains(event.target);
     if (event.code === 'Space') {
       if (isPlayerControl) return; // 焦點在播放器自己的控制項上時交給瀏覽器原生行為（按鈕的 click、scrubber 的預設行為），避免我們的邏輯又觸發一次造成雙重切換互相抵銷
       if (playing) pause();
@@ -103,4 +133,5 @@ export function initPlayer({ steps, render, mount }) {
   });
 
   goTo(0);
+  play(); // 進頁面就開始播：讀者是來看動畫的，不該先找播放鍵
 }

@@ -6,12 +6,28 @@
   <title>Consistent Hashing - 系統設計動畫參考站</title>
   <link rel="stylesheet" href="../../assets/css/tokens.css">
   <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="topic-page">
+  <main class="topic-page topic-page-wide">
     <a class="back-link" href="../../index.html">← 返回首頁</a>
     <h1>Consistent Hashing</h1>
+    <section class="lesson-intro">
+      <p>資料分散在多台節點上時，要決定每個 key 放哪一台。最直覺的做法是 hash(key) % N，但節點數 N 一變，幾乎所有 key 的結果都跟著變，等於整批資料要重新搬家。Consistent Hashing 就是為了讓節點增減時只搬一小部分資料。</p>
+      <p class="lesson-watch">左右兩邊拿到的是同一批 key、同樣的節點增減。留意右邊的環：key 沿順時針找到的第一個節點負責它，新增或移除節點時，只有相鄰那一段的 key 會換人。畫面上的雜湊值是固定的示範數字，歸屬和搬動數量由程式依規則算出。</p>
+    </section>
     <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>取餘數（hash % N）</dt>
+        <dd>實作最簡單，節點數固定時分布平均。節點數一變，大部分 key 的餘數都不同，幾乎全部要搬家，快取會大量失效。</dd>
+        <dt>Consistent Hashing</dt>
+        <dd>節點和 key 都放在同一個雜湊環上，key 由順時針第一個節點負責。增減節點只影響相鄰的一段，平均搬動約 K/N 個 key（K 是 key 總數，N 是節點數）。</dd>
+        <dt>Virtual nodes</dt>
+        <dd>實務上每台實體節點會在環上放多個虛擬節點，讓 key 和負載分得更平均。這個動畫沒有畫出來。</dd>
+      </dl>
+    </section>
   </main>
   <script type="module">
     import { initPlayer } from '../../assets/js/engine/player.js';

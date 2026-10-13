@@ -6,12 +6,32 @@
   <title>SQL Joins - 系統設計動畫參考站</title>
   <link rel="stylesheet" href="../../assets/css/tokens.css">
   <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="topic-page">
+  <main class="topic-page topic-page-wide">
     <a class="back-link" href="../../index.html">← 返回首頁</a>
     <h1>SQL Joins</h1>
+    <section class="lesson-intro">
+      <p>JOIN 把兩張表合成一張：users 一列是一個人，orders 一列是一筆訂單，靠 orders.user_id 對到 users.id。真正要選的是配不到的時候怎麼辦，沒下過單的 user、找不到 user 的訂單，要留下還是丟掉，四種 JOIN 的答案不同。</p>
+      <p class="lesson-watch">四個面板拿同一份資料同步前進，每個面板上方是它對應的 SQL，四段語法只差 JOIN 關鍵字。游標每到一列先比對，再決定產出。綠色是配對成功，橘色是保留並補 NULL，紅色是被丟掉。留意 Dev、Eva（沒有訂單）和 orders #5（找不到 user）這三列，四個面板的反應各不相同。</p>
+    </section>
     <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>INNER JOIN</dt>
+        <dd>只保留兩邊都配得到的列。任何一邊配不到的列都不會出現在結果，結果列數最少。</dd>
+        <dt>LEFT JOIN</dt>
+        <dd>左表（users）的列全部保留，沒有配到訂單的 user 會留下來，訂單欄位補 NULL。常用於「列出所有 user，有訂單的順便帶出訂單」。</dd>
+        <dt>RIGHT JOIN</dt>
+        <dd>右表（orders）的列全部保留，找不到 user 的訂單會留下來，user 欄位補 NULL。把兩張表左右對調，就等於 LEFT JOIN。</dd>
+        <dt>FULL OUTER JOIN</dt>
+        <dd>兩邊配不到的列都保留並補 NULL，結果列數最多。適合用來找出兩張表互相對不上的資料。</dd>
+        <dt>一對多</dt>
+        <dd>一個 user 對到多筆訂單時，每筆配對各產生一列，所以結果可以比任何一張表都長。</dd>
+      </dl>
+    </section>
   </main>
   <script type="module">
     import { initPlayer } from '../../assets/js/engine/player.js';

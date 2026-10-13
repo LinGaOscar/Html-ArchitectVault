@@ -1,0 +1,101 @@
+/* Load Balancer 主題專屬樣式；共用的 .chip、.flow、.flow-col 等在 assets/css/base.css */
+/* 舞台：兩種演算法各一個面板並排；請求是疊在版面上的常駐元素，靠 transform 在各個位置之間移動 */
+.lb-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bs-spacer-3); }
+.lb-panel { min-width: 0; }
+.lb-title { display: inline; margin: 0; font-size: 1.0625rem; }
+.lb-rule { display: inline; margin-left: var(--bs-spacer-2); color: var(--bs-secondary-color); font-size: .8125rem; }
+.lb-code { margin: var(--bs-spacer-2) 0; }
+.lb-code + .lb-scene { margin-top: 0; }
+.lb-explain { min-height: 2.8em; margin: var(--bs-spacer-2) 0 0; color: var(--bs-secondary-color); font-size: .875rem; }
+.lb-scene { position: relative; }
+.lb-narrow { display: none; }
+.lb-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.lb-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease; }
+.lb-wire.is-target { stroke: color-mix(in srgb, var(--bs-primary) 55%, transparent); stroke-dasharray: 4 5; }
+.lb-wire.is-active { stroke: var(--bs-primary); stroke-dasharray: 6 6; animation: wire-flow .5s linear infinite; }
+@keyframes wire-flow { to { stroke-dashoffset: -12; } }
+
+.lb-slotbox {
+  display: inline-block;
+  flex: none;
+  width: 2.5rem;
+  height: 1.75rem;
+  border: 1px dashed transparent;
+  border-radius: var(--bs-border-radius-sm);
+}
+.lb-gate .lb-slotbox, .lb-server .lb-slotbox { border-color: var(--bs-border-color); }
+.lb-queue, .lb-chips { display: flex; flex-wrap: wrap; gap: var(--bs-spacer-1); }
+.lb-tokens { position: absolute; inset: 0; pointer-events: none; }
+.lb-token { position: absolute; left: 0; top: 0; will-change: transform; }
+.lb-token .chip { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 1.75rem; padding: 0; }
+.lb-token.is-current .chip {
+  background: color-mix(in srgb, var(--bs-primary) 22%, var(--bs-secondary-bg));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-primary) 30%, transparent);
+}
+.lb-token.is-gone .chip { opacity: 0; transform: scale(.4); }
+
+.lb-process { display: flex; align-items: center; gap: var(--bs-spacer-3); }
+.lb-gate { display: flex; }
+.lb-decision-wrap { position: relative; flex: 1; min-width: 0; }
+.lb-pointer {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  color: var(--bs-primary);
+  font-size: .75rem;
+  line-height: 1.5rem;
+  transition: transform .45s cubic-bezier(.3, 1.4, .5, 1), opacity .3s ease;
+}
+.lb-decision { list-style: none; margin: 0; padding: 0; font-size: .8125rem; }
+.lb-decision li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--bs-spacer-2);
+  height: 1.5rem;
+  padding: 0 var(--bs-spacer-1) 0 1.25rem;
+  border-radius: var(--bs-border-radius-sm);
+  color: var(--bs-secondary-color);
+  transition: color .3s ease, background-color .3s ease;
+}
+.lb-decision li.is-pick { color: var(--bs-primary); background: color-mix(in srgb, var(--bs-primary) 12%, transparent); }
+.lb-servers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--bs-spacer-2); }
+.lb-server {
+  min-width: 0;
+  padding: var(--bs-spacer-1) var(--bs-spacer-2) var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-secondary-bg);
+  transition: border-color .3s ease, background-color .3s ease;
+}
+.lb-server.is-target { border-color: var(--bs-primary); border-style: dashed; }
+.lb-server.is-chosen { border-color: var(--bs-primary); background: color-mix(in srgb, var(--bs-primary) 8%, var(--bs-secondary-bg)); }
+.lb-count { margin-bottom: var(--bs-spacer-1); color: var(--bs-secondary-color); font-size: .8125rem; }
+.lb-count-num { display: inline-block; color: var(--bs-body-color); font-weight: bold; }
+
+/* 手機：兩個面板仍然並排（並排才比得出差異），所以每樣東西都縮到最小 */
+@media (max-width: 760px) {
+  .lb-panels { gap: var(--bs-spacer-2); }
+  .lb-title { display: block; font-size: .875rem; }
+  .lb-rule { display: block; margin: 0; font-size: .6875rem; min-height: 3.2em; }
+  .lb-wide, .flow-col h4 small { display: none; }
+  .lb-narrow { display: inline; }
+  .lb-panel .flow { gap: 18px; }
+  .lb-panel .flow-col { padding: var(--bs-spacer-1); }
+  .lb-panel .flow-col h4 { margin-bottom: var(--bs-spacer-1); font-size: .75rem; }
+  .lb-panel .flow-col-inline { display: block; }
+  .lb-slotbox, .lb-token .chip { width: 1.75rem; height: 1.375rem; font-size: .6875rem; }
+  .lb-queue, .lb-chips { gap: 2px; }
+  .lb-process { gap: var(--bs-spacer-1); }
+  .lb-decision { font-size: .6875rem; }
+  .lb-decision li { height: 1.25rem; padding-left: .75rem; gap: 2px; }
+  .lb-pointer { left: 0; font-size: .5rem; line-height: 1.25rem; }
+  .lb-servers { gap: 2px; }
+  .lb-server { padding: 2px; font-size: .75rem; text-align: center; }
+  .lb-chips { flex-direction: column; align-items: center; }
+  .lb-count { font-size: .6875rem; }
+  .lb-explain { min-height: 5.6em; font-size: .6875rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lb-wire.is-active { animation: none; }
+}
