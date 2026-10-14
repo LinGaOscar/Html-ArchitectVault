@@ -282,9 +282,9 @@ export const compare = {
   rows: [
     { label: '中間層', values: ['Controller：接收輸入、改 Model', 'Presenter：畫面邏輯，主動更新 View', 'ViewModel：畫面狀態，靠綁定同步'] },
     { label: '誰更新畫面', values: ['View 觀察 Model 自己重畫', 'Presenter 逐一呼叫 View', '綁定機制自動同步'] },
-    { label: '畫面更新完成要幾拍', values: stat('hops').map((v) => `${v} 拍`), highlight: true },
-    { label: '中間層主動更新畫面', values: stat('pushes').map((v) => (v ? `${v} 次` : '不用')), highlight: true },
-    { label: '加結帳按鈕要改的既有元件', values: stat('changed').map((v, i) => `${v} 個${v ? `（${names(systems[i], addDiff[i].changed)}）` : ''}`), highlight: true },
+    { label: '畫面更新完成要幾拍', better: 'low', values: stat('hops').map((v) => `${v} 拍`), highlight: true },
+    { label: '中間層主動更新畫面', better: 'low', values: stat('pushes').map((v) => `${v} 次`), highlight: true },
+    { label: '加結帳按鈕要改的既有元件', better: 'low', values: stat('changed').map((v, i) => `${v} 個${v ? `（${names(systems[i], addDiff[i].changed)}）` : ''}`), highlight: true },
     { label: '測畫面邏輯', values: sims.map((sim) => `真畫面：${sim.stats.realUi}，假 View：${sim.stats.mocks} 個`), highlight: true },
     { label: '代價', values: ['View 與 Model 綁在一起，邏輯容易散在 View 和 Controller', 'View 介面與 Presenter 的呼叫要一個一個寫', '需要綁定框架；綁定出錯時較難追蹤'] },
     { label: '常見於', values: ['伺服器端網頁框架（Rails、Spring MVC、ASP.NET MVC）', 'Android 早期、WinForms、需要高度可測的 UI', 'WPF、Vue、Angular、Android Jetpack、SwiftUI'] },

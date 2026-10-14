@@ -28,16 +28,18 @@ export function initPlayer({ steps, render, mount }) {
         <div class="stage" id="stage"></div>
         <div class="chapter-banner" aria-hidden="true"></div>
       </div>
-      <div class="caption-box">
-        <p class="caption" id="caption" aria-live="polite"></p>
-        <div class="step-progress" aria-hidden="true"><span></span></div>
-      </div>
-      <div class="transport">
-        <button type="button" data-action="prev" aria-label="上一步">⏮</button>
-        <button type="button" data-action="play-pause" aria-label="播放">▶</button>
-        <button type="button" data-action="next" aria-label="下一步">⏭</button>
-        <input type="range" class="scrubber" min="0" max="${steps.length - 1}" value="0" aria-label="時間軸">
-        <span class="step-counter"></span>
+      <div class="player-head">
+        <div class="caption-box">
+          <p class="caption" id="caption" aria-live="polite"></p>
+          <div class="step-progress" aria-hidden="true"><span></span></div>
+        </div>
+        <div class="transport">
+          <button type="button" data-action="prev" aria-label="上一步">⏮</button>
+          <button type="button" data-action="play-pause" aria-label="播放">▶</button>
+          <button type="button" data-action="next" aria-label="下一步">⏭</button>
+          <input type="range" class="scrubber" min="0" max="${steps.length - 1}" value="0" aria-label="時間軸">
+          <span class="step-counter"></span>
+        </div>
       </div>
     </div>
   `;

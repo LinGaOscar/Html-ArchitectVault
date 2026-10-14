@@ -36,7 +36,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 使用者可以拖時間軸任意跳步與倒退，所以 **render 必須能只憑 `step`（加上 `prevStep`）畫出完整狀態**，不能依賴先前呼叫累積下來的狀態。所有推導（模擬、計數、歸屬）都在 `steps.js` 產生步驟時算好放進 `data`。
 
-播放器不對舞台做任何轉場，只在舞台外圍加章節橫幅、說明文字進場與自動播放倒數條。
+播放器不對舞台做任何轉場，只在舞台外圍加章節橫幅、說明文字進場與自動播放倒數條。說明文字與控制列包在 `.player-head` 裡，桌機捲動時黏在頂端；手機不黏（說明常有四五行，會吃掉半個螢幕）。`.stage` 用 `overflow-x: clip` 而不是 `auto`，否則舞台會變成捲動容器，裡面的 `position: sticky` 就失效。
 
 ### 主題的畫法：常駐場景
 
@@ -57,6 +57,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - `assets/js/engine/graph.js`：純函式，從依賴圖推導「一次修改要改哪些既有元件」（`diffNodes`）與「測試要接哪些真實依賴、要幾個假物件」（`testNeeds`）。比較結論一律用它算，不手寫。
 - `assets/js/engine/archsim.js`：steps.js 用的模擬狀態與 `view()`，把每一拍的方塊狀態（`active`、`changed`、`new`、`needed`、`mocked`、`broken`、`deploy`、`stale`、`ok`…）拍成 diagram.js 要的資料。
 - `assets/css/diagram.css`：架構圖共用樣式，方塊狀態會在右上角顯示文字標籤（要改、新增、綁住、假的、停擺…），不只靠顏色。
+- diagram.js 會自動產生：舞台頂端的圖例（只列主題用到的箭頭與顏色）；手機版黏在舞台頂端的比較摘要（各方案的 `stats` 並排）；「不同」標記（某個計數這一拍剛變動、多數方案一致而只有一個不同時，標出那個面板）。對照表的列加上 `better: 'low' | 'high'` 就會把數字畫成長條並標出最好、最差。
 - 箭頭會被方塊遮住，安排 `cell` 時要避免箭頭從不相干的方塊後面穿過，否則會被誤讀成那個方塊的依賴。
 
 ### 每個主題共同的教學結構

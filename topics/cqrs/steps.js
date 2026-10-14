@@ -108,6 +108,7 @@ export const systems = [
   {
     id: 'es',
     title: 'CQRS + Event Sourcing',
+    short: 'CQRS+ES',
     rule: '寫入端不存目前狀態，只把發生過的事件依序追加到 Event Store；讀取用的 view 全部由事件投影出來。',
     processLabel: '左邊寫入、右邊查詢',
     cols: 3,
@@ -309,9 +310,9 @@ export const compare = {
   rows: [
     { label: '寫入端存了什麼', values: stat('store') },
     { label: '剛下單立刻查得到', values: stat('fresh'), highlight: true },
-    { label: '查訂單列表要 JOIN', values: stat('joins'), highlight: true },
+    { label: '查訂單列表要 JOIN', better: 'low', values: stat('joins'), highlight: true },
     { label: '能單獨擴充讀取端', values: stat('scaleRead'), highlight: true },
-    { label: '新報表能看到的歷史', values: stat('report'), highlight: true },
+    { label: '新報表能看到的歷史', better: 'high', values: stat('report'), highlight: true },
     { label: '代價', values: ['讀寫互相拖累，複雜查詢與寫入搶同一組表', '兩套模型、資料同步、要處理最終一致', '再加上事件版本管理、重播時間、快照，學習成本最高'] },
     { label: '適合', values: ['大部分一般的業務系統', '讀寫比例懸殊、查詢畫面很多樣', '需要稽核軌跡、回溯歷史、金融或訂單流程'] },
   ],

@@ -88,6 +88,7 @@ export const systems = [
   {
     id: 'clean',
     title: 'Clean Architecture',
+    short: 'Clean',
     rule: '同心圓：Entity 在最內圈，Use Case 包著它，外圈的轉接層與框架只能往內依賴。',
     processLabel: '箭頭 = 原始碼裡誰 import 誰',
     cols: 3, // main 放左下角：它接 Gateway 的箭頭才不會從 Entity 後面穿過、被誤看成 Entity 的依賴
@@ -273,8 +274,8 @@ export const compare = {
   title: '同一個下單功能，三種分層方式',
   rows: [
     { label: '依賴方向', values: ['由上往下，最後依賴資料庫', '全部指向核心，核心不依賴外面', '由外圈指向內圈，Entity 最穩定'] },
-    { label: '業務邏輯依賴的基礎設施', values: stat('coreDeps').map((v) => `${v} 個`), highlight: true },
-    { label: '換 DB 要改的既有元件', values: stat('changed').map((v, i) => `${v} 個（${names(systems[i], swapDiff[i].changed)}）`), highlight: true },
+    { label: '業務邏輯依賴的基礎設施', better: 'low', values: stat('coreDeps').map((v) => `${v} 個`), highlight: true },
+    { label: '換 DB 要改的既有元件', better: 'low', values: stat('changed').map((v, i) => `${v} 個（${names(systems[i], swapDiff[i].changed)}）`), highlight: true },
     { label: '測業務邏輯要接真 DB', values: stat('realDb'), highlight: true },
     { label: '初期成本', values: ['最低，檔案最少、最直覺', '要多定義 Port 介面與 Adapter', '層數最多，小專案容易過度設計'] },
     { label: '適合', values: ['CRUD 為主、規則簡單的系統', '規則複雜、外部系統常換的服務', '大型、長期維護、多團隊的系統'] },

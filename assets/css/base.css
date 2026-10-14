@@ -70,7 +70,22 @@ a { color: var(--bs-info); }
   border-radius: var(--bs-border-radius);
   font-family: var(--bs-font-monospace);
   font-size: .875rem;
-  overflow-x: auto;
+  /* clip 而不是 auto：auto 會讓舞台變成捲動容器，裡面 position: sticky 的東西就黏不住畫面。
+     舞台內容本來就不允許橫向超出（390px 寬也要放得下），所以裁掉不會藏住任何東西 */
+  overflow-x: clip;
+}
+/* 說明文字與控制列：舞台比一個螢幕高時，往下看輸出區也不會丟掉說明和播放鍵 */
+.player-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bs-spacer-2);
+  padding: var(--bs-spacer-2) 0;
+  background: color-mix(in srgb, var(--bs-body-bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--bs-border-color);
 }
 .stage h3, .stage p { font-family: var(--bs-font-sans-serif); }
 .caption-box {
@@ -320,6 +335,8 @@ a { color: var(--bs-info); }
   .chapter-banner { top: var(--bs-spacer-2); padding: var(--bs-spacer-1) var(--bs-spacer-3); font-size: .9375rem; }
   .caption { font-size: .9375rem; }
   .caption-box { padding: var(--bs-spacer-1) var(--bs-spacer-2); }
+  /* 手機上說明文字常有四五行，整塊黏在頂端會吃掉半個螢幕；手機改由舞台裡的比較摘要黏住 */
+  .player-head { position: static; padding: 0; border-bottom: 0; background: none; backdrop-filter: none; }
   .topic-page { padding: var(--bs-spacer-3); }
   .snippet { padding: var(--bs-spacer-1); font-size: .625rem; }
   .stage { padding: var(--bs-spacer-2); }

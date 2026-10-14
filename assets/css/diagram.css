@@ -180,9 +180,83 @@
 .dg-compare-table td, .dg-compare-table th { vertical-align: top; }
 .dg-compare-table tbody th { color: var(--bs-body-color); white-space: nowrap; }
 
+/* 圖例：只列這個主題用到的箭頭與顏色 */
+.dg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bs-spacer-1) var(--bs-spacer-3);
+  margin-bottom: var(--bs-spacer-3);
+  padding: var(--bs-spacer-2) var(--bs-spacer-3);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-body-bg);
+  color: var(--bs-secondary-color);
+  font-family: var(--bs-font-sans-serif);
+  font-size: .75rem;
+}
+.dg-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.dg-legend svg { width: 34px; height: 10px; overflow: visible; }
+.dg-legend .dg-edge { stroke-width: 2; }
+.dg-lhead { fill: color-mix(in srgb, var(--bs-body-color) 45%, transparent); }
+.dg-lhead.is-hollow { fill: var(--bs-body-bg); stroke: color-mix(in srgb, var(--bs-body-color) 45%, transparent); stroke-width: 1.2; }
+.dg-ldot { width: 10px; height: 10px; border-radius: 2px; background: var(--dg-c); }
+.dg-lbox { width: 16px; height: 11px; border: 1px dashed color-mix(in srgb, var(--bs-info) 60%, transparent); border-radius: 3px; }
+.dg-lbox.is-boundary { border-color: color-mix(in srgb, var(--bs-warning) 55%, transparent); }
+
+/* 手機專用的比較摘要（桌機三個面板本來就並排，不需要） */
+.dg-summary { display: none; }
+
+/* 這一拍跟其他方案結果不同的面板：外框發光加「不同」標籤，眼睛會自動找到差異 */
+.dg-panel { position: relative; border-radius: var(--bs-border-radius); transition: box-shadow .4s ease; }
+.dg-panel.is-diff {
+  --fx-c: var(--bs-warning);
+  box-shadow: 0 0 0 2px var(--bs-warning), 0 0 22px color-mix(in srgb, var(--bs-warning) 35%, transparent);
+  animation: fx-impact .8s ease-out;
+}
+.dg-panel.is-diff .dg-title::after {
+  content: "不同";
+  margin-left: var(--bs-spacer-2);
+  padding: 1px 6px;
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-warning);
+  color: var(--bs-body-bg);
+  font-size: .6875rem;
+  vertical-align: .15em;
+}
+.dg-stat dd.is-diff, .dg-summary td.is-diff { color: var(--bs-warning); text-shadow: 0 0 8px color-mix(in srgb, var(--bs-warning) 60%, transparent); }
+
+/* 對照表的數字長條：長短一眼可比，綠色是最好、紅色是最差 */
+.dg-cv .dg-bar { display: block; height: 4px; margin-top: 4px; border-radius: 2px; background: var(--bs-border-color); }
+.dg-cv .dg-bar i { display: block; height: 100%; border-radius: 2px; background: var(--bs-secondary-color); }
+.dg-cv.is-best { color: var(--bs-success); }
+.dg-cv.is-best .dg-bar i { background: var(--bs-success); box-shadow: 0 0 6px var(--bs-success); }
+.dg-cv.is-best > span:first-child::before { content: "✓ "; }
+.dg-cv.is-worst { color: var(--bs-danger); }
+.dg-cv.is-worst .dg-bar i { background: var(--bs-danger); }
+
 /* 手機：面板直排，每個面板內的架構圖完整保留，方塊與字縮小 */
 @media (max-width: 760px) {
   .dg-panels { grid-template-columns: minmax(0, 1fr); gap: var(--bs-spacer-4); }
+  .dg-legend { gap: 2px var(--bs-spacer-2); padding: var(--bs-spacer-1) var(--bs-spacer-2); font-size: .6875rem; }
+  .dg-summary {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    display: table;
+    width: 100%;
+    margin-bottom: var(--bs-spacer-3);
+    border-collapse: collapse;
+    background: color-mix(in srgb, var(--bs-body-bg) 94%, transparent);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--bs-body-bg) 80%, transparent);
+    font-family: var(--bs-font-sans-serif);
+    font-size: .6875rem;
+    line-height: 1.35;
+  }
+  .dg-summary th, .dg-summary td { padding: 3px 4px; border-bottom: 1px solid var(--bs-border-color); text-align: left; vertical-align: top; }
+  .dg-summary thead th { color: var(--bs-info); font-weight: bold; }
+  .dg-summary tbody th { width: 34%; color: var(--bs-secondary-color); font-weight: normal; }
+  .dg-summary td { font-weight: bold; overflow-wrap: anywhere; }
   .dg-panel .flow-col h4 small { display: none; }
   .dg-title { font-size: .9375rem; }
   .dg-rule { min-height: 0; font-size: .6875rem; }
