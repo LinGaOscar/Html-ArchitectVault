@@ -13,26 +13,11 @@
     <h1 class="page-title">系統設計動畫參考站</h1>
     <p class="page-subtitle">給入門與跨領域讀者的系統設計動畫。每個主題從一個生活情境開始，把幾種做法放在一起同步播放，讓你直接看到差別在哪裡。不懂的詞，點一下就有解釋。</p>
 
-    <section class="learning-path">
-      <h2>第一次來？照這個順序看</h2>
-      <ol>
-        <li><a href="./topics/load-balancer/">Load Balancer</a><span>流量怎麼分給多台伺服器</span></li>
-        <li><a href="./topics/sql-joins/">SQL Joins</a><span>兩張表的資料怎麼配對</span></li>
-        <li><a href="./topics/cache-strategies/">Cache 讀寫策略</a><span>為什麼要快取、快取和資料庫怎麼同步</span></li>
-        <li><a href="./topics/api-sync-async/">前端呼叫 API</a><span>同步與非同步的差別</span></li>
-        <li><a href="./topics/long-task/">長時間工作</a><span>做很久的事怎麼通知使用者</span></li>
-        <li><a href="./topics/db-replication/">資料庫複寫</a><span>備份資料庫的三種取捨</span></li>
-        <li><a href="./topics/resilience/">重試與熔斷</a><span>對方壞掉時怎麼不把事情弄更糟</span></li>
-        <li><a href="./topics/deploy-architecture/">系統部署架構</a><span>單體與微服務</span></li>
-      </ol>
-      <p>看完這幾個，再挑標著「進階」的主題，例如 Kafka vs RabbitMQ、交易隔離等級、CQRS。</p>
-    </section>
 
     <section class="topic-section">
       <h2>基礎篇<small>程式在一台機器上怎麼跑</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/stack-vs-heap/">
-          <span class="level is-advanced">進階</span>
           <h3>Stack vs Heap</h3>
           <p>程式執行時，資料放在記憶體的哪裡</p>
         </a>
@@ -43,32 +28,26 @@
       <h2>資料篇<small>資料怎麼查、怎麼放、怎麼保持一致</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/sql-joins/">
-          <span class="level is-basic">入門</span>
           <h3>SQL Joins</h3>
           <p>兩張表怎麼配對：INNER / LEFT / RIGHT / FULL</p>
         </a>
         <a class="topic-card" href="./topics/tx-isolation/">
-          <span class="level is-advanced">進階</span>
           <h3>交易隔離等級</h3>
           <p>Read Committed / Repeatable Read / Serializable</p>
         </a>
         <a class="topic-card" href="./topics/db-replication/">
-          <span class="level is-basic">入門</span>
           <h3>資料庫複寫</h3>
           <p>同步 / 非同步 / 多主複寫：延遲、遺失與衝突</p>
         </a>
         <a class="topic-card" href="./topics/cache-strategies/">
-          <span class="level is-basic">入門</span>
           <h3>Cache 讀寫策略</h3>
           <p>Cache-Aside / Write-Through / Write-Back</p>
         </a>
         <a class="topic-card" href="./topics/consistent-hashing/">
-          <span class="level is-advanced">進階</span>
           <h3>Consistent Hashing</h3>
           <p>加一台機器時，怎麼只搬少量資料</p>
         </a>
         <a class="topic-card" href="./topics/cqrs/">
-          <span class="level is-advanced">進階</span>
           <h3>CQRS</h3>
           <p>CRUD / CQRS / Event Sourcing 的讀寫分離</p>
         </a>
@@ -79,17 +58,14 @@
       <h2>架構篇<small>程式碼和系統怎麼組織</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/app-architecture/">
-          <span class="level is-advanced">進階</span>
           <h3>程式內部分層</h3>
           <p>三層式 / 六角架構 / Clean Architecture 的依賴方向</p>
         </a>
         <a class="topic-card" href="./topics/ui-patterns/">
-          <span class="level is-advanced">進階</span>
           <h3>畫面互動模式</h3>
           <p>MVC / MVP / MVVM：資料改了由誰送回畫面</p>
         </a>
         <a class="topic-card" href="./topics/deploy-architecture/">
-          <span class="level is-basic">入門</span>
           <h3>系統部署架構</h3>
           <p>單體式 / 模組化單體 / 微服務的影響範圍</p>
         </a>
@@ -100,17 +76,14 @@
       <h2>通訊篇<small>元件之間怎麼溝通</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/api-sync-async/">
-          <span class="level is-basic">入門</span>
           <h3>前端呼叫 API</h3>
           <p>同步 / 逐一等待 / 並行：畫面會不會卡住、失敗怎麼辦</p>
         </a>
         <a class="topic-card" href="./topics/long-task/">
-          <span class="level is-basic">入門</span>
           <h3>長時間工作</h3>
           <p>一直等 / 隔一陣子問一次 / 做完主動通知</p>
         </a>
         <a class="topic-card" href="./topics/kafka-vs-rabbitmq/">
-          <span class="level is-advanced">進階</span>
           <h3>Kafka vs RabbitMQ</h3>
           <p>訊息送到就刪 vs 記在帳本上可以重讀</p>
         </a>
@@ -121,12 +94,10 @@
       <h2>擴展與可靠性篇<small>流量變大、出錯時怎麼撐住</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/load-balancer/">
-          <span class="level is-basic">入門</span>
           <h3>Load Balancer</h3>
           <p>照順序輪流分 vs 每次挑最閒的那台</p>
         </a>
         <a class="topic-card" href="./topics/resilience/">
-          <span class="level is-basic">入門</span>
           <h3>重試與熔斷</h3>
           <p>立即重試 / 指數退避 / 熔斷器：下游故障時怎麼撐住</p>
         </a>

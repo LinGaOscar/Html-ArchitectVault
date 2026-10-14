@@ -218,6 +218,24 @@ export function initPlayer({ steps, render, mount }) {
     codeBtn.textContent = on ? '隱藏程式碼' : '顯示程式碼';
     // 程式碼展開或收起會改變版面高度，各主題用絕對座標擺的元素要重新對位
     window.dispatchEvent(new Event('resize'));
+    if (on) revealCode();
+  }
+  // 程式碼在面板頂端，讀者往下捲著看動畫時那裡已經捲出畫面，按了會以為沒反應；
+  // 所以不在畫面內就捲過去，並閃一下讓視線落到它上面
+  function revealCode() {
+    const snippets = Array.from(stageEl.querySelectorAll('.snippet'));
+    if (!snippets.length) return;
+    const first = snippets[0].getBoundingClientRect();
+    const headBottom = Math.max(0, mount.querySelector('.player-head').getBoundingClientRect().bottom);
+    if (first.top < headBottom || first.bottom > window.innerHeight) {
+      snippets[0].scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    }
+    if (reduceMotion) return;
+    const c = getComputedStyle(stageEl).getPropertyValue('--bs-primary').trim();
+    snippets.forEach((el) => el.animate(
+      [{ boxShadow: `0 0 0 2px ${c}, 0 0 18px ${c}` }, { boxShadow: '0 0 0 0 transparent' }],
+      { duration: 1200, easing: 'ease-out' },
+    ));
   }
   codeBtn.addEventListener('click', () => setCode(!stageEl.classList.contains('show-code')));
 

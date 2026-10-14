@@ -469,31 +469,3 @@ a { color: var(--bs-info); }
   .caption-detail { font-size: .8125rem; }
 }
 
-/* 首頁：難度標籤與入門路線。不寫程式的讀者先照路線看，才不會一開始就撞上最難的主題 */
-.topic-card { position: relative; }
-.level {
-  float: right;
-  margin: 0 0 var(--bs-spacer-1) var(--bs-spacer-2);
-  padding: 0 6px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  font-size: .6875rem;
-  line-height: 1.6;
-}
-.level.is-basic { color: var(--bs-primary); }
-.level.is-advanced { color: var(--bs-warning); }
-.learning-path {
-  margin-bottom: var(--bs-spacer-5);
-  padding: var(--bs-spacer-3) var(--bs-spacer-4);
-  border: 1px solid color-mix(in srgb, var(--bs-primary) 35%, var(--bs-border-color));
-  border-radius: var(--bs-border-radius);
-  background: color-mix(in srgb, var(--bs-primary) 6%, var(--bs-secondary-bg));
-}
-.learning-path h2 { margin: 0 0 var(--bs-spacer-2); font-size: 1.0625rem; }
-.learning-path ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--bs-spacer-1) var(--bs-spacer-4); margin: 0; padding-left: 1.25rem; }
-.learning-path li a { font-weight: bold; }
-.learning-path li span { display: block; color: var(--bs-secondary-color); font-size: .8125rem; }
-.learning-path p { margin: var(--bs-spacer-2) 0 0; color: var(--bs-secondary-color); font-size: .875rem; }
-@media (max-width: 760px) {
-  .learning-path { padding: var(--bs-spacer-2) var(--bs-spacer-3); }
-}

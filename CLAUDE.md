@@ -85,7 +85,6 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - 術語解釋集中在 `assets/js/glossary.js` 的 `TERMS`（同義詞放 `ALIAS`）。播放器會自動在說明文字、`.lesson-intro`、`.lesson-summary` 裡標出每個詞第一次出現的位置，點一下或滑過就顯示解釋。新主題用到新術語就加進 `TERMS`，解釋要用生活語言寫。
 - 舞台上的程式碼片段加 `.snippet` class，預設隱藏，播放器偵測到才出現「顯示程式碼」開關。
 - 舞台上的文字（判斷結果、標籤）用白話，英文術語只在名稱本身就是英文時保留（Kafka、Cache-Aside）。
-- 首頁卡片用 `<span class="level is-basic">入門</span>` 或 `is-advanced` 標難度；`.learning-path` 列出建議的閱讀順序，只放入門主題。
 
 ### 樣式分層
 
