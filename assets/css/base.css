@@ -350,3 +350,59 @@ a { color: var(--bs-info); }
   .snippet { padding: var(--bs-spacer-1); font-size: .625rem; }
   .stage { padding: var(--bs-spacer-2); }
 }
+
+/* 深淺色切換開關：固定在頁面右上角（main 的角落），不跟著捲動，避免蓋到黏在頂端的說明與控制列 */
+/* 標題右側留出開關的位置，長標題才不會鑽到開關底下 */
+.page-title, .topic-page h1 { padding-right: 8rem; }
+.page, .topic-page { position: relative; }
+.theme-switch {
+  position: absolute;
+  top: var(--bs-spacer-3);
+  right: var(--bs-spacer-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bs-spacer-2);
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  background: var(--bs-secondary-bg);
+  color: var(--bs-secondary-color);
+  font: inherit;
+  font-size: .8125rem;
+  cursor: pointer;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.theme-switch:hover { border-color: var(--bs-primary); box-shadow: 0 0 10px color-mix(in srgb, var(--bs-primary) 30%, transparent); }
+.theme-switch:focus-visible { outline: 2px solid var(--bs-primary); outline-offset: 2px; }
+.theme-track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--bs-tertiary-bg);
+  box-shadow: inset 0 0 0 1px var(--bs-border-color);
+}
+.theme-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bs-primary);
+  color: var(--bs-body-bg);
+  font-size: 11px;
+  line-height: 1;
+  transition: transform .25s cubic-bezier(.3, 1.4, .5, 1);
+}
+.theme-switch[aria-checked="true"] .theme-knob { transform: translateX(20px); }
+/* 切換時整頁顏色淡入淡出，不是瞬間跳色 */
+.theme-fade, .theme-fade * { transition: background-color .35s ease, color .35s ease, border-color .35s ease !important; }
+@media (max-width: 760px) {
+  .theme-switch { top: var(--bs-spacer-2); right: var(--bs-spacer-3); padding-right: 4px; }
+  .theme-label { display: none; }
+  .page-title, .topic-page h1 { padding-right: 4rem; }
+  .topic-page .back-link { margin-top: 2px; }
+}

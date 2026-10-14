@@ -80,7 +80,8 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 ### 樣式分層
 
-- `assets/css/tokens.css`：顏色、間距、圓角變數（Bootstrap 風格命名、深色主題）。色值與尺寸一律引用這些變數。
+- `assets/css/tokens.css`：顏色、間距、圓角變數（Bootstrap 風格命名）。預設深色，`:root[data-scheme="light"]` 是淺色版，只換色值不換變數名稱。色值與尺寸一律引用這些變數，不可寫死顏色，否則切到淺色會壞掉。
+- `assets/js/theme.js`：每一頁在 `<head>` 用一般 `<script>`（不是 module）同步載入，在第一次繪製前設好 `data-scheme`，並在 `main` 右上角插入深淺色開關；選擇存在 localStorage，沒選過就跟隨作業系統。用 `data-scheme` 而不是 `data-theme`，是因為 artifact 的外框會在頁面根元素設自己的 `data-theme`。新增頁面要記得加這個 script。
 - `assets/css/base.css`：全站共用，包含播放器外殼、`.chip`、`.delta`、`.flow`、`.topic-page-wide`、教學文字區塊。`.stage` 用 `order: 1` 排在說明文字與控制列之後。
 - `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-`，時間軸主題用 `as-`、`lt-` 作為頁面 class；共用架構圖用 `dg-`，共用時間軸用 `tl-`）。
 - 手機版斷點是 `max-width: 760px`。並排的面板在手機上仍維持並排（或改成面板直排、面板內橫排），做法是縮小字與格子；放不下的文字同時輸出長短兩版，用 `*-wide` / `*-narrow` class 切換。390px 寬時頁面與舞台都不可橫向捲動。

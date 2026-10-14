@@ -35,4 +35,30 @@
   --bs-spacer-3: 1rem;
   --bs-spacer-4: 1.5rem;
   --bs-spacer-5: 3rem;
+
+  color-scheme: dark;
+}
+
+/*
+ * 淺色主題：只換色值，變數名稱不變，所以每個主題、每個元件自動跟著切換。
+ * 強調色比深色版深一階：淺色底上的亮青、亮黃對比不夠，文字和細線會看不清楚；
+ * 徽章文字用 --bs-body-bg（白），強調色也得夠深才讀得到。
+ */
+:root[data-scheme="light"] {
+  --bs-body-bg: #F5F7FA;
+  --bs-body-color: #172033;
+  --bs-secondary-color: #586579;
+  --bs-border-color: #D3DAE5;
+
+  --bs-secondary-bg: #FFFFFF;
+  --bs-tertiary-bg: #ECF0F6;
+
+  --bs-primary: #0E8A72;
+  --bs-info: #2563C4;
+  --bs-success: #0E8A72;
+  --bs-warning: #A86A00;
+  --bs-danger: #C53A2E;
+  --bs-purple: #7445C9;
+
+  color-scheme: light;
 }
