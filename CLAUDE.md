@@ -60,19 +60,29 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - diagram.js 會自動產生：舞台頂端的圖例（只列主題用到的箭頭與顏色）；手機版黏在舞台頂端的比較摘要（各方案的 `stats` 並排）；「不同」標記（某個計數這一拍剛變動、多數方案一致而只有一個不同時，標出那個面板）。對照表的列加上 `better: 'low' | 'high'` 就會把數字畫成長條並標出最好、最差。
 - 箭頭會被方塊遮住，安排 `cell` 時要避免箭頭從不相干的方塊後面穿過，否則會被誤讀成那個方塊的依賴。
 
+### 時間軸主題：共用時間軸引擎
+
+`api-sync-async`、`long-task` 比較的是「同一段時間裡誰在等、誰被卡住」，用甘特圖式的時間軸呈現：
+
+- `assets/js/engine/timeline.js`：`createTimelineRender({ systems, compare, maxLanes, legend })`。每一步的 view 給 `span`、`unit`、時間游標 `t`、泳道 `lanes`、橫條 `bars`（`tone` 決定顏色：`block` 主執行緒卡住、`work`、`net`、`conn`、`job`、`abort`、`err`）與瞬間標記 `marks`。橫條依 id 建立後常駐，游標推進時跟著長出來；只有往後一步才播生長轉場，倒退與跳步直接定格。
+- 同一條泳道上相鄰的標記文字會疊在一起，標記要分散到不同泳道或縮短文字；標記在時間軸右半邊時文字自動往左長。
+- `assets/css/timeline.css`：時間軸樣式；面板外殼、輸出區、摘要、對照表沿用 `diagram.css`。
+
+`assets/js/engine/panelkit.js` 是 diagram.js 與 timeline.js 共用的面板零件：輸出區計數、手機比較摘要、「不同」標記、對照表長條。
+
 ### 每個主題共同的教學結構
 
 - 畫面分成「輸入 → 處理 → 輸出」三段（共用 class `.flow` / `.flow-col`）。
 - 一個事件拆成兩拍：先顯示正在判斷什麼，再顯示結果落到哪裡。
 - 要比較的方案放在並排的面板裡同步前進（同一拍一起動），不是依序播放；最後一個章節是對照表。
-- `index.html` 的結構是 `.lesson-intro`（要解決的問題＋看動畫時留意什麼）→ `#player-root` → `.lesson-summary`（重點整理）。
+- `index.html` 的結構是 `.lesson-intro`（要解決的問題＋看動畫時留意什麼）→ `#player-root` → `.lesson-summary`（重點整理）。重點整理裡每個方案在說明之後接一段 `<dd class="lesson-why"><b>為什麼這樣設計</b>…</dd>`，寫這個方案當初要解決什麼問題，讀者換個情境才判斷得出該不該用。
 - 範例資料是刻意設計來凸顯差異的，而且各種計數、歸屬都由程式模擬算出，不手寫。
 
 ### 樣式分層
 
 - `assets/css/tokens.css`：顏色、間距、圓角變數（Bootstrap 風格命名、深色主題）。色值與尺寸一律引用這些變數。
 - `assets/css/base.css`：全站共用，包含播放器外殼、`.chip`、`.delta`、`.flow`、`.topic-page-wide`、教學文字區塊。`.stage` 用 `order: 1` 排在說明文字與控制列之後。
-- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-` 作為頁面 class，共用架構圖用 `dg-`）。
+- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-`，時間軸主題用 `as-`、`lt-` 作為頁面 class；共用架構圖用 `dg-`，共用時間軸用 `tl-`）。
 - 手機版斷點是 `max-width: 760px`。並排的面板在手機上仍維持並排（或改成面板直排、面板內橫排），做法是縮小字與格子；放不下的文字同時輸出長短兩版，用 `*-wide` / `*-narrow` class 切換。390px 寬時頁面與舞台都不可橫向捲動。
 
 ### 其他目錄
@@ -84,3 +94,4 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 - 文字與註解用繁體中文，技術名詞保留英文；註解寫「為什麼」（教學上的理由），不寫「做了什麼」。
 - 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。
+- 驗證：使用者在 artifact（https://claude.ai/artifact/3GcLHdu6GLwH1hj6WjMs4F）上看結果，不要跑本機瀏覽器測試（localhost）。改完只做 `node --check` 與 steps 資料檢查，再更新 artifact。artifact 的首頁是另外產生的版本，主題連結要寫成 `./topics/<名稱>/index.html`。

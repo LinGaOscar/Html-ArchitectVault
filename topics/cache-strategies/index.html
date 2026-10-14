@@ -22,10 +22,13 @@
       <dl>
         <dt>Cache-Aside</dt>
         <dd>由應用程式管 Cache。讀取 miss 時自己回源 DB 並回填；寫入時先寫 DB，再把 Cache 的舊值刪除（invalidate）。刪除而不是更新，是因為下一次讀取會從 DB 載入最新值。代價是寫入後的第一次讀取一定 miss，會多打一次 DB。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>cache 只是加速用的副本，由 App 自己管理最有彈性，cache 掛了也能直接讀 DB。寫入時刪除而不是更新，是因為「寫 DB」和「更新 cache」之間可能被其他請求插隊，留下錯的值；直接刪掉、讓下一次讀取重新載入最安全。</dd>
         <dt>Write-Through</dt>
         <dd>寫入時同步寫 Cache 與 DB，兩邊都完成才回應，所以 Cache 與 DB 保持一致，也不會因 Cache 故障掉資料。代價是每次寫入都要等 DB。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>有些資料寫完馬上會被讀，例如購物車、個人設定，每次都 miss 回源太浪費。寫入時同步更新兩邊，cache 永遠是最新的，cache 故障也不會掉資料。</dd>
         <dt>Write-Back（Write-Behind）</dt>
         <dd>寫入只寫 Cache 並標 dirty，立刻回應，之後再批次 flush 到 DB。寫入最快，多次寫入同一個 key 還能合併成一次 DB 寫入。代價是 flush 之前 DB 落後 Cache，若 Cache 此時故障，尚未寫回的資料就遺失。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>寫入量極大時（計數器、按讚數、即時統計），DB 撐不住每次都寫。先寫進記憶體、把多次寫入合併後批次寫回，用「可能掉一點資料」換取寫入吞吐量。</dd>
       </dl>
     </section>
   </main>

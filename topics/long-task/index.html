@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>長時間工作 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide lt-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>長時間工作：同步等待 vs 輪詢 vs 推播</h1>
+    <section class="lesson-intro">
+      <p>匯出報表、轉檔、批次匯入這類工作要跑幾十秒到幾分鐘。讓一個 HTTP 請求一路等到做完最簡單，但請求會撞上閘道逾時，連線也一直被佔著。常見的做法是先回「收到了」（202 Accepted），把工作丟到背景，再用輪詢或推播告訴前端什麼時候做完。</p>
+      <p class="lesson-watch">每個面板的時間軸有三條泳道：瀏覽器、API / 閘道、背景工作。黃色是被佔住的連線，紫色是後端真正在做的報表。留意第 60 秒同步等待發生了什麼，以及三種做法各在第幾秒讓使用者拿到報表。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>同步等待</dt>
+        <dd>前端一個請求等到底。工作超過閘道或瀏覽器的逾時，使用者就看到錯誤，後端卻還在做；使用者重試又多做一份。工作期間連線與伺服器執行緒都被佔住，同時的人一多，連線池就滿了。</dd>
+        <dd class="lesson-why"><b>為什麼這樣做</b>它是 HTTP 最原始的模式，前後端都不需要額外的工作佇列、狀態查詢或連線管理。對幾秒內一定做完的工作，這份簡單是值得的。</dd>
+        <dt>202 + 輪詢</dt>
+        <dd>伺服器立刻回 202 與工作編號，工作交給背景佇列；前端每隔一段時間查一次狀態。每次請求都很短，不怕逾時；代價是大多數詢問都是「還沒好」，而且結果最多晚一個輪詢間隔才知道。</dd>
+        <dd class="lesson-why"><b>為什麼這樣做</b>把「接收工作」和「完成工作」拆開，請求長度就不再受工作時間影響。輪詢只用普通的 HTTP，任何伺服器、代理、防火牆都支援，也容易快取與重試，是最穩妥的非同步做法。</dd>
+        <dt>推播（WebSocket / SSE）</dt>
+        <dd>同樣先回 202，前端開一條長連線，伺服器在工作完成的那一刻主動通知。不浪費詢問，也沒有延遲；代價是伺服器要能同時維持大量閒置的長連線，斷線重連也要處理。</dd>
+        <dd class="lesson-why"><b>為什麼這樣做</b>當使用者正盯著畫面等（進度條、聊天、即時通知），延遲幾秒都感覺得到，大量空詢問也浪費資源。讓「事情發生的一方」主動通知，是即時性與資源消耗都最好的解法。SSE 只能由伺服器往瀏覽器送，比 WebSocket 簡單，適合單向的通知。</dd>
+        <dt>跟其他主題的關係</dt>
+        <dd>背景工作通常靠訊息佇列（見 Kafka vs RabbitMQ）派發；「先回收到、稍後才完成」也是最終一致性的一種（見 CQRS）。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

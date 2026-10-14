@@ -213,6 +213,15 @@ a { color: var(--bs-info); }
 .lesson-summary h2 { font-size: 1.1rem; margin-bottom: var(--bs-spacer-3); }
 .lesson-summary dt { color: var(--bs-primary); font-weight: 600; }
 .lesson-summary dd { margin: 0 0 var(--bs-spacer-3); color: var(--bs-secondary-color); }
+/* 「為什麼這樣設計」：每個方案當初要解決什麼問題。只知道做法、不知道動機，換個情境就不知道該不該用 */
+.lesson-summary dd.lesson-why {
+  margin-top: calc(-1 * var(--bs-spacer-2));
+  padding: var(--bs-spacer-1) var(--bs-spacer-2);
+  border-left: 2px solid var(--bs-warning);
+  background: color-mix(in srgb, var(--bs-warning) 6%, transparent);
+  color: var(--bs-body-color);
+}
+.lesson-why b { color: var(--bs-warning); margin-right: var(--bs-spacer-1); }
 
 [hidden] { display: none !important; }
 

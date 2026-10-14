@@ -1,0 +1,136 @@
+/* 時間軸主題共用樣式（assets/js/engine/timeline.js）。面板外殼、輸出區、摘要、對照表沿用 diagram.css 的 dg- 樣式。 */
+/* 橫條顏色代表「這段時間在做什麼」：紅色是畫面被卡住，藍色是在等網路，綠色是真的在執行程式 */
+[data-tone="block"] { --tl-c: var(--bs-danger); }
+[data-tone="work"] { --tl-c: var(--bs-primary); }
+[data-tone="net"] { --tl-c: var(--bs-info); }
+[data-tone="conn"] { --tl-c: var(--bs-warning); }
+[data-tone="job"] { --tl-c: var(--bs-purple); }
+[data-tone="abort"] { --tl-c: var(--bs-secondary-color); }
+[data-tone="err"] { --tl-c: var(--bs-danger); }
+[data-tone="ok"] { --tl-c: var(--bs-success); }
+[data-tone="click"] { --tl-c: var(--bs-body-color); }
+[data-tone="poll"] { --tl-c: var(--bs-info); }
+
+.tl-chart {
+  --lw: 4.75rem; /* 泳道名稱欄寬；游標與刻度都要扣掉這一欄才對得到時間 */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--bs-spacer-2) 0 var(--bs-spacer-1);
+  font-family: var(--bs-font-sans-serif);
+}
+.tl-axis, .tl-row { display: flex; align-items: center; }
+.tl-lname { flex: none; width: var(--lw); padding-right: 6px; color: var(--bs-secondary-color); font-size: .75rem; line-height: 1.2; }
+.tl-ticks { position: relative; flex: 1; height: 1.1rem; border-bottom: 1px solid var(--bs-border-color); }
+.tl-ticks span { position: absolute; bottom: 2px; transform: translateX(-50%); color: var(--bs-secondary-color); font-size: .625rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tl-ticks span:first-child { transform: none; }
+.tl-ticks span:last-child { transform: translateX(-100%); }
+.tl-track {
+  position: relative;
+  flex: 1;
+  height: 1.75rem;
+  border-radius: var(--bs-border-radius-sm);
+  background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), color-mix(in srgb, var(--bs-border-color) 70%, transparent) calc(25% - 1px) 25%), var(--bs-body-bg);
+}
+
+.tl-bar {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--tl-c);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tl-c) 30%, var(--bs-secondary-bg));
+  color: var(--bs-body-color);
+  font-size: .625rem;
+  line-height: calc(1.75rem - 8px);
+  white-space: nowrap;
+  transition: width .7s linear, left .3s ease, opacity .3s ease;
+}
+.tl-bar span { padding: 0 4px; }
+.tl-bar.is-hidden { opacity: 0; }
+/* 還在進行中的橫條，右端有一道亮光，表示「還在等」 */
+.tl-bar:not(.is-done):not(.is-hidden) { box-shadow: 4px 0 10px -2px var(--tl-c); }
+.tl-bar[data-tone="block"] {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tl-c) 45%, var(--bs-secondary-bg)) 0 6px, color-mix(in srgb, var(--tl-c) 20%, var(--bs-secondary-bg)) 6px 12px);
+}
+.tl-bar[data-tone="abort"], .tl-bar[data-tone="err"] { border-style: dashed; }
+.tl-bar[data-tone="abort"] span { text-decoration: line-through; }
+
+.tl-mark { position: absolute; top: 50%; z-index: 2; width: 0; height: 0; opacity: 0; transition: opacity .3s ease; }
+.tl-mark.is-on { opacity: 1; }
+.tl-mark i {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--bs-body-bg);
+  border-radius: 50%;
+  background: var(--tl-c);
+  box-shadow: 0 0 8px var(--tl-c);
+}
+.tl-mark span {
+  position: absolute;
+  left: 8px;
+  top: -.7rem;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--bs-body-bg) 85%, transparent);
+  color: var(--tl-c);
+  font-size: .625rem;
+  font-weight: bold;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.tl-mark.is-flip span { left: auto; right: 8px; }
+.tl-mark.is-new i { --fx-c: var(--tl-c); animation: fx-impact .8s ease-out; }
+.tl-mark.is-new[data-tone="err"] span { animation: fx-shake .45s ease-out; }
+
+/* 時間游標：所有泳道共用一條，位置 = 名稱欄寬 + 剩餘寬度 × 進度 */
+.tl-cursor {
+  position: absolute;
+  top: var(--bs-spacer-2);
+  bottom: 0;
+  left: calc(var(--lw) + (100% - var(--lw)) * var(--p));
+  z-index: 3;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--bs-primary);
+  box-shadow: 0 0 8px var(--bs-primary);
+  pointer-events: none;
+  transition: left .7s linear;
+}
+.tl-cursor span {
+  position: absolute;
+  top: -2px;
+  left: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: var(--bs-primary);
+  color: var(--bs-body-bg);
+  font-size: .625rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.is-snap .tl-bar, .is-snap .tl-cursor { transition: none; }
+
+.tl-ldot { width: 14px; height: 8px; border: 1px solid var(--tl-c); border-radius: 2px; background: color-mix(in srgb, var(--tl-c) 35%, transparent); }
+.tl-ldot[data-tone="block"] { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tl-c) 60%, transparent) 0 3px, transparent 3px 6px); }
+.tl-lcursor { width: 2px; height: 12px; background: var(--bs-primary); box-shadow: 0 0 6px var(--bs-primary); }
+
+@media (max-width: 760px) {
+  .tl-chart { --lw: 3.5rem; gap: 4px; }
+  .tl-lname { font-size: .625rem; }
+  .tl-track { height: 1.5rem; }
+  .tl-bar { line-height: calc(1.5rem - 8px); font-size: .5625rem; }
+  .tl-mark span { font-size: .5625rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-bar, .tl-cursor { transition: none; }
+}
+/* 沒有文字的標記（例如中間幾次「還沒好」的輪詢）只畫圓點 */
+.tl-mark span:empty { display: none; }

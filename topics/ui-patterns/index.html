@@ -23,10 +23,13 @@
       <dl>
         <dt>MVC</dt>
         <dd>Controller 接收輸入並修改 Model，View 觀察 Model 的變化自己重畫。分工直覺，但 View 直接依賴 Model、Controller 又常依賴具體的 View，畫面邏輯容易散在兩邊，也不好脫離畫面測試。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>最早是為了讓同一份資料能有多種呈現（表格、圖表），把資料與顯示分開，再由 Controller 處理輸入。伺服器端網頁「一個請求、一個 Controller、回一個 View」也剛好吻合這個分工。</dd>
         <dt>MVP</dt>
         <dd>View 變成被動的介面，所有畫面邏輯集中在 Presenter，由它決定何時更新哪個 View。因為只依賴 View 介面，可以用假 View 測試；代價是每個畫面元件都要寫對應的呼叫，畫面越多，Presenter 越肥。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>沒有資料綁定的 UI 框架（WinForms、早期 Android）裡，View 很難測試。把所有畫面邏輯搬進 Presenter，讓 View 只剩一組介面，就能用假 View 寫單元測試。</dd>
         <dt>MVVM</dt>
         <dd>ViewModel 只公開畫面需要的狀態（qty、total），View 用資料綁定宣告「我要顯示 total」，框架負責同步。ViewModel 完全不認識 View，最好測、加畫面也不用改它；代價是要依賴綁定框架，綁定出錯時較難追蹤。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>有了資料綁定框架，「把值設到畫面元件上」這種程式可以交給框架做。ViewModel 只描述畫面需要的狀態、不知道畫面長怎樣，改畫面和寫邏輯可以分開進行，也最好測試。</dd>
         <dt>怎麼選</dt>
         <dd>通常由框架決定：伺服器端網頁框架多半是 MVC，Vue、Angular、WPF、SwiftUI 這類有資料綁定的框架走 MVVM。沒有綁定機制、又需要高度可測時，才自己實作 MVP。</dd>
       </dl>

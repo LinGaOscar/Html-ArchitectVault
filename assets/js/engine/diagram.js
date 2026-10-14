@@ -1,4 +1,5 @@
-import { flyTo, pop } from './motion.js';
+import { flyTo } from './motion.js';
+import { statsHtml, collectStats, setStat, summaryHtml, collectSummary, syncComparison, compareHtml } from './panelkit.js';
 
 // 架構比較主題共用的舞台：每個方案一個面板，面板裡是「方塊 + 依賴箭頭 + 移動的請求」組成的架構圖。
 // 跟其他主題一樣，場景只建一次，之後每一步只改 class、文字與位置；請求是常駐 token，用 flyTo 在元件之間移動。
@@ -22,22 +23,6 @@ const KIND_MARK = { iface: 'h', dep: 'a', net: 'a', bind: 'a', event: 'a', call:
 // 圖例只列出這個主題真的用到的符號：讀者不用記沒出現的東西
 const KIND_LABEL = { dep: '依賴具體類別', iface: '依賴介面（可替換）', net: '網路呼叫', bind: '資料綁定', event: '事件通知' };
 const RING_LABEL = { core: '核心邏輯', app: '應用 / 組裝', module: '功能模組', ui: '畫面元件', adapter: '轉接層', infra: '基礎設施', test: '測試' };
-
-const shortTitle = (sys) => sys.short || sys.title.split('（')[0];
-const numOf = (v) => {
-  const m = typeof v === 'number' ? [String(v)] : String(v ?? '').match(/-?\d+(\.\d+)?/);
-  return m ? Number(m[0]) : null;
-};
-
-// 這一拍「跟其他方案不一樣」的面板：某個計數這一拍剛變動，而且多數方案一致、只有它不同。
-// 三個方案各不相同時不標，避免每一拍都在閃。
-function outliers(values) {
-  const counts = new Map();
-  values.forEach((v) => counts.set(v, (counts.get(v) || 0) + 1));
-  const [mode, n] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
-  if (n < 2 || n === values.length) return [];
-  return values.map((v, i) => (v !== mode ? i : -1)).filter((i) => i >= 0);
-}
 
 export function createDiagramRender({ systems, compare }) {
   let scene = null;
@@ -86,36 +71,12 @@ export function createDiagramRender({ systems, compare }) {
             </section>
             <section class="flow-col" data-col="output">
               <h4>輸出 <small>這個做法的結果</small></h4>
-              <dl class="dg-stats">${sys.stats.map((s) => `<div class="dg-stat" data-stat="${s.id}"><dt>${s.label}</dt><dd>—</dd></div>`).join('')}</dl>
+              ${statsHtml(sys.stats)}
               <p class="dg-verdict"></p>
             </section>
           </div>
         </div>
       </article>
-    `;
-  }
-
-  // 對照表：標了 better 的數字列加長條，最好的一格標綠、最差的標紅，掃一眼就知道結論
-  function compareCells(r) {
-    const nums = r.values.map(numOf);
-    if (!r.better || nums.some((n) => n === null)) return r.values.map((v) => `<td>${v}</td>`).join('');
-    const max = Math.max(...nums, 1);
-    const best = r.better === 'low' ? Math.min(...nums) : Math.max(...nums);
-    const worst = r.better === 'low' ? Math.max(...nums) : Math.min(...nums);
-    const tie = best === worst;
-    return r.values.map((v, i) => {
-      const cls = tie ? '' : nums[i] === best ? 'is-best' : nums[i] === worst ? 'is-worst' : '';
-      return `<td class="dg-cv ${cls}"><span>${v}</span><span class="dg-bar"><i style="width:${Math.max(4, (nums[i] / max) * 100)}%"></i></span></td>`;
-    }).join('');
-  }
-
-  function compareHtml() {
-    return `
-      <h3 class="dg-title">${compare.title}</h3>
-      <table class="grid-table dg-compare-table">
-        <thead><tr><th></th>${systems.map((s) => `<th>${s.title}</th>`).join('')}</tr></thead>
-        <tbody>${compare.rows.map((r) => `<tr class="${r.highlight ? 'row-highlight' : ''}"><th>${r.label}</th>${compareCells(r)}</tr>`).join('')}</tbody>
-      </table>
     `;
   }
 
@@ -131,15 +92,6 @@ export function createDiagramRender({ systems, compare }) {
       ${hasUnit ? '<span><i class="dg-lbox"></i>部署單元</span>' : ''}
       ${hasBoundary ? '<span><i class="dg-lbox is-boundary"></i>模組邊界</span>' : ''}
     </div>`;
-  }
-
-  // 手機上面板改成直排，讀到第三個面板時已經忘了第一個的數字；這條摘要固定在舞台頂端，把各方案的計數並排
-  function summaryHtml() {
-    const stats = systems[0].stats;
-    return `<table class="dg-summary" aria-label="各方案計數並排">
-      <thead><tr><th></th>${systems.map((s) => `<th>${shortTitle(s)}</th>`).join('')}</tr></thead>
-      <tbody>${stats.map((st) => `<tr data-stat="${st.id}"><th>${st.label}</th>${systems.map(() => '<td>—</td>').join('')}</tr>`).join('')}</tbody>
-    </table>`;
   }
 
   function collectPanel(root, sys) {
@@ -158,7 +110,7 @@ export function createDiagramRender({ systems, compare }) {
       groups: byAttr('group', sys.groups || []),
       edges: byAttr('edge', sys.edges),
       tokens: byAttr('tok', sys.tokens || []),
-      stats: Object.fromEntries(sys.stats.map((s) => [s.id, q(`[data-stat="${s.id}"] dd`)])),
+      stats: collectStats(root, sys.stats),
       positions: new Map(),
     };
   }
@@ -167,17 +119,16 @@ export function createDiagramRender({ systems, compare }) {
     stage.innerHTML = `
       <div class="dg-run">
         ${legendHtml()}
-        ${summaryHtml()}
+        ${summaryHtml(systems)}
         <div class="dg-panels" style="--panels:${systems.length}">${systems.map(panelHtml).join('')}</div>
       </div>
-      <div class="dg-compare" hidden>${compareHtml()}</div>
+      <div class="dg-compare" hidden>${compareHtml(systems, compare)}</div>
     `;
     const roots = Array.from(stage.querySelectorAll('.dg-panel'));
-    const summary = stage.querySelector('.dg-summary');
     return {
       stage,
       panelsEl: stage.querySelector('.dg-run'),
-      summaryCells: Object.fromEntries(systems[0].stats.map((st) => [st.id, Array.from(summary.querySelectorAll(`tr[data-stat="${st.id}"] td`))])),
+      summaryCells: collectSummary(stage, systems),
       compareEl: stage.querySelector('.dg-compare'),
       panels: roots.map((root, i) => collectPanel(root, systems[i])),
       current: null,
@@ -206,17 +157,6 @@ export function createDiagramRender({ systems, compare }) {
   function wirePath(x1, y1, x2, y2) {
     const bend = (y2 - y1) / 2;
     return `M ${x1} ${y1} C ${x1} ${y1 + bend}, ${x2} ${y2 - bend}, ${x2} ${y2}`;
-  }
-
-  function setStat(dd, value, before, animate) {
-    const text = value === undefined || value === null ? '—' : String(value);
-    const changed = before !== undefined && before !== null && before !== value && value !== undefined && value !== null;
-    if (changed && typeof value === 'number' && typeof before === 'number') {
-      dd.innerHTML = `<span class="delta"><s>${before}</s> → <b>${value}</b></span>`;
-    } else {
-      dd.textContent = text;
-    }
-    if (changed || (before == null && value != null)) pop(dd, animate);
   }
 
   function updatePanel(panel, v, prevV, animate) {
@@ -298,23 +238,7 @@ export function createDiagramRender({ systems, compare }) {
     const views = step.data.panels;
     scene.panels.forEach((panel, i) => updatePanel(panel, views[i], prevPanels ? prevPanels[i] : null, animate));
 
-    const diffPanels = new Set();
-    systems[0].stats.forEach((st) => {
-      const values = views.map((v) => v.stats[st.id]);
-      const changed = views.some((v, i) => v.stats[st.id] != null && (!prevPanels || prevPanels[i].stats[st.id] !== v.stats[st.id]));
-      const odd = changed && values.every((v) => v != null) ? outliers(values.map(String)) : [];
-      odd.forEach((i) => diffPanels.add(i));
-      scene.summaryCells[st.id].forEach((td, i) => {
-        const text = values[i] == null ? '—' : String(values[i]);
-        if (td.textContent !== text) {
-          td.textContent = text;
-          pop(td, animate);
-        }
-        td.classList.toggle('is-diff', odd.includes(i));
-      });
-      scene.panels.forEach((panel, i) => panel.stats[st.id].classList.toggle('is-diff', odd.includes(i)));
-    });
-    scene.panels.forEach((panel, i) => panel.root.classList.toggle('is-diff', diffPanels.has(i)));
+    syncComparison({ systems, panels: scene.panels, summaryCells: scene.summaryCells, views, prevViews: prevPanels, animate });
   }
 
   // 視窗寬度一變，方塊位置就跟著變；箭頭與 token 是用絕對座標擺的，得重新對位

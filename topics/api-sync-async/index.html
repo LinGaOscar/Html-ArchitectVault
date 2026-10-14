@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>前端呼叫 API - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide as-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>前端呼叫 API：同步 vs 非同步</h1>
+    <section class="lesson-intro">
+      <p>瀏覽器的 JavaScript 只有一條主執行緒，畫面重畫、點擊、打字都要它來處理。呼叫 API 時如果同步等待，等網路的這段時間它什麼都不能做，畫面就凍結了。非同步讓它在等待時先去做別的事；但同樣是非同步，請求要排隊還是一起發、失敗和亂序怎麼處理，結果差很多。</p>
+      <p class="lesson-watch">每個面板是一張時間軸：最上面是主執行緒，紅色斜紋代表它被卡住；下面是各支 API 的等待時間。留意同一個時間點三邊誰在等、誰被卡住，以及最後畫面顯示的是不是正確的結果。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>同步呼叫</dt>
+        <dd>程式停在呼叫那一行直到回應回來。邏輯最直覺，但主執行緒被卡住，畫面凍結、點擊與輸入全部延後。瀏覽器已不建議在主執行緒上用同步 XHR。</dd>
+        <dd class="lesson-why"><b>為什麼曾經這樣做</b>早期網頁沒有 Promise 與 async/await，同步寫法可以照「一行接一行」的順序思考，不用處理 callback。它在伺服器端或背景執行緒仍然合理，因為那裡被卡住的不是使用者的畫面。</dd>
+        <dt>非同步：逐一 await</dt>
+        <dd>用 fetch 與 await，等待時主執行緒是空的，畫面能正常回應。但每個 await 都要等前一個結束，彼此無關的請求也被迫排隊；每個請求回來就直接畫，舊回應可能蓋掉新結果。</dd>
+        <dd class="lesson-why"><b>為什麼這樣做</b>async/await 讓非同步程式看起來跟同步一樣好讀，是最自然的第一步。當後一個請求真的需要前一個的結果（先拿 token 再查資料、先建訂單再付款），依序 await 正是正確寫法。</dd>
+        <dt>非同步：並行＋防護</dt>
+        <dd>彼此獨立的請求一起發，總等待時間只取決於最慢的一支；用 Promise.allSettled 讓每支各自成功或失敗；會被新輸入取代的請求用 AbortController 取消，或只採用最後一次請求的結果。</dd>
+        <dd class="lesson-why"><b>為什麼這樣做</b>使用者感受到的速度取決於「最後一個區塊出現的時間」，並行能把它從各支相加縮短到最慢那一支。網路回應的順序不保證，所以只要畫面會被連續觸發（搜尋、篩選、切換分頁），就得明確處理過期的回應。</dd>
+        <dt>Promise.all 和 allSettled</dt>
+        <dd>Promise.all 只要一支失敗，整個就失敗，其他成功的結果也拿不到，適合「缺一不可」的資料。Promise.allSettled 等全部結束、分別回報成功或失敗，適合頁面上各自獨立的區塊。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

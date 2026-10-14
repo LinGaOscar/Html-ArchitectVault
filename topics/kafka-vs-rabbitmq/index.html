@@ -22,8 +22,10 @@
       <dl>
         <dt>RabbitMQ：訊息佇列</dt>
         <dd>producer 送到 exchange，依路由規則放進 queue，broker 推給 consumer；consumer ack 之後訊息就刪除。同一個 queue 多加 consumer 就能分攤工作，適合任務派發。要讓多個服務都收到，得各建一個 queue 綁到 exchange，而且只收得到綁定之後的訊息。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>它的目標是「把一件工作可靠地交給某個 worker」：每則訊息有確認、重試與死信佇列，路由規則也很彈性。處理完就刪除，broker 不必保存越來越多的資料。</dd>
         <dt>Kafka：分散式 log</dt>
         <dd>訊息依 key 附加到 topic 的某個 partition，在保留期限內不會因為被讀過而刪除。consumer group 自己記 offset，所以新的 group 可以從頭重播，出錯時也能把 offset 調回去重新處理。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>LinkedIn 需要讓很多系統（搜尋索引、推薦、監控）各自讀同一份事件流，還要能重新處理過去的資料。把訊息當成只追加的 log、讓讀取方自己記位置，broker 就不必追蹤每個讀者，吞吐量也能非常高。</dd>
         <dt>順序</dt>
         <dd>Kafka 只保證同一個 partition 內有序；同一個 key 永遠進同一個 partition，所以同一個 user 的事件會依序處理。RabbitMQ 一個 queue 配多個 consumer 時，同一個 user 的訊息可能被不同 consumer 同時處理，順序不保證。</dd>
         <dt>怎麼選</dt>

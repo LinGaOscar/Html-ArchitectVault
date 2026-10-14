@@ -1,0 +1,7 @@
+/* 主題專屬樣式；時間軸共用樣式在 assets/css/timeline.css，面板外殼沿用 assets/css/diagram.css */
+/* 三個面板的程式碼行數不同，桌機並排時固定高度，下面的時間軸才對得齊 */
+.lt-page .dg-rule { min-height: 5.6em; }
+.lt-page .dg-code { min-height: calc(9em + 2 * var(--bs-spacer-2) + 2px); }
+@media (max-width: 760px) {
+  .lt-page .dg-rule, .lt-page .dg-code { min-height: 0; }
+}

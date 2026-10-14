@@ -22,8 +22,10 @@
       <dl>
         <dt>Round Robin</dt>
         <dd>照順序輪流，不需要知道後端狀態，實作最簡單。每個請求耗時差不多時夠用；有長有短時，可能把新請求塞給還在忙的那台。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>Load Balancer 每秒要分配大量請求，Round Robin 只靠一個計數器，不必追蹤也不必詢問後端狀態，最快、最不容易出錯。後端規格相同、每個請求耗時相近時，輪流分配就已經接近平均。</dd>
         <dt>Least Connections</dt>
         <dd>每次給連線最少的那台，負載比較平均，適合連線時間長短不一的服務（例如 WebSocket、長查詢）。代價是 Load Balancer 得持續追蹤每台的連線數。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>請求耗時差異大時，「輪到誰」和「誰比較閒」不再是同一台。連線數是 Load Balancer 自己就看得到的資訊，拿它當負載的近似值，不需要額外的監控系統就能避開還在忙的那台。</dd>
       </dl>
     </section>
   </main>
