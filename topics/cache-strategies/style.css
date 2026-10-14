@@ -33,9 +33,10 @@
 .cs-key { display: block; color: var(--bs-secondary-color); font-size: .6875rem; }
 .cs-val { display: inline-block; font-weight: bold; }
 .cs-entry[data-state="empty"] .cs-val { color: var(--bs-secondary-color); font-weight: normal; }
-.cs-entry[data-state="dirty"] { border-color: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 16%, var(--bs-secondary-bg)); }
-.cs-entry[data-state="stale"] { border-color: var(--bs-danger); border-style: dashed; }
-.cs-entry[data-state="crashed"] { border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 18%, var(--bs-secondary-bg)); }
+/* 髒資料慢慢閃黃（還沒寫回 DB）；過期與當機用紅色並抖一下，代表這裡出事了 */
+.cs-entry[data-state="dirty"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 16%, var(--bs-secondary-bg)); animation: fx-pulse 1.3s ease-in-out infinite; }
+.cs-entry[data-state="stale"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); border-style: dashed; animation: fx-shake .45s ease-out, fx-pulse 1.3s ease-in-out .45s infinite; }
+.cs-entry[data-state="crashed"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 18%, var(--bs-secondary-bg)); animation: fx-shake .45s ease-out, fx-pulse .9s ease-in-out .45s infinite; }
 .cs-tag { min-height: 1.5em; font-size: .75rem; color: var(--bs-warning); }
 .cs-entry[data-state="crashed"] + .cs-tag, .cs-entry[data-state="stale"] + .cs-tag { color: var(--bs-danger); }
 .cs-verdict { min-height: 2.8em; margin: var(--bs-spacer-1) 0 0; font-size: .8125rem; transition: color .3s ease; }
@@ -45,8 +46,7 @@
 
 .cs-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .cs-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease; }
-.cs-wire.is-active { stroke: var(--bs-primary); stroke-dasharray: 6 6; animation: cs-wire-flow .5s linear infinite; }
-@keyframes cs-wire-flow { to { stroke-dashoffset: -12; } }
+.cs-wire.is-active { stroke: var(--bs-primary); stroke-width: 3; stroke-dasharray: 10 14; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--fx-c)); animation: fx-wire-flow .45s linear infinite; }
 
 .cs-tokens { position: absolute; inset: 0; pointer-events: none; }
 .cs-token {
@@ -66,8 +66,8 @@
   will-change: transform;
   transition: opacity .35s ease, background-color .3s ease, border-color .3s ease;
 }
-.cs-token-res { border-color: var(--bs-info); background: color-mix(in srgb, var(--bs-info) 22%, var(--bs-secondary-bg)); }
-.cs-token-res.is-warn { border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 30%, var(--bs-secondary-bg)); }
+.cs-token-res { --fx-c: var(--bs-info); border-color: var(--bs-info); background: color-mix(in srgb, var(--bs-info) 22%, var(--bs-secondary-bg)); }
+.cs-token-res.is-warn { --fx-c: var(--bs-danger); animation: fx-pulse .8s ease-in-out infinite; border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 30%, var(--bs-secondary-bg)); }
 .cs-token.is-gone { opacity: 0; }
 
 .cs-compare .cs-title { display: block; margin-bottom: var(--bs-spacer-3); }

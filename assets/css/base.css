@@ -39,9 +39,12 @@ a { color: var(--bs-info); }
   text-decoration: none;
   transition: border-color .15s ease, background .15s ease;
 }
+.topic-card { transition: border-color .15s ease, background .15s ease, transform .2s ease, box-shadow .2s ease; }
 .topic-card:hover {
   border-color: var(--bs-primary);
   background: var(--bs-tertiary-bg);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--bs-primary) 22%, transparent);
 }
 .topic-card h3 { margin: 0 0 var(--bs-spacer-1); font-size: 1rem; color: var(--bs-primary); }
 .topic-card p { margin: 0; font-size: .875rem; color: var(--bs-secondary-color); }
@@ -53,11 +56,16 @@ a { color: var(--bs-info); }
 
 /* 共用播放器（由 assets/js/engine/player.js 注入到 mount 節點內） */
 .player { display: flex; flex-direction: column; gap: var(--bs-spacer-2); }
+.stage-wrap { position: relative; order: 1; /* 舞台排在說明與控制列之後：舞台很高時，這兩樣仍然留在第一屏看得到 */ }
 .stage {
-  order: 1; /* 舞台排在說明與控制列之後：舞台很高時，這兩樣仍然留在第一屏看得到 */
   min-height: 320px;
   padding: var(--bs-spacer-3);
-  background: var(--bs-secondary-bg);
+  /* 淡淡的格線加上頂端光暈：像示波器/監控螢幕，動起來的東西在上面更醒目 */
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, color-mix(in srgb, var(--bs-primary) 7%, transparent), transparent 70%),
+    linear-gradient(color-mix(in srgb, var(--bs-border-color) 45%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, color-mix(in srgb, var(--bs-border-color) 45%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--bs-secondary-bg);
   border: 1px solid var(--bs-border-color);
   border-radius: var(--bs-border-radius);
   font-family: var(--bs-font-monospace);
@@ -65,7 +73,43 @@ a { color: var(--bs-info); }
   overflow-x: auto;
 }
 .stage h3, .stage p { font-family: var(--bs-font-sans-serif); }
-.caption { min-height: 3.2em; margin: 0; color: var(--bs-body-color); }
+.caption-box {
+  position: relative;
+  padding: var(--bs-spacer-2) var(--bs-spacer-3);
+  border-left: 3px solid var(--bs-primary);
+  border-radius: var(--bs-border-radius-sm);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--bs-primary) 10%, transparent), transparent 80%);
+  overflow: hidden;
+}
+.caption { min-height: 3.2em; margin: 0; color: var(--bs-body-color); font-size: 1.0625rem; }
+.step-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; }
+.step-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--bs-info), var(--bs-primary));
+  box-shadow: 0 0 8px var(--bs-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.chapter-banner {
+  position: absolute;
+  top: var(--bs-spacer-4);
+  left: 50%;
+  z-index: 5;
+  padding: var(--bs-spacer-2) var(--bs-spacer-4);
+  border: 1px solid var(--bs-primary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bs-body-bg) 82%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--bs-primary) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--bs-primary) 20%, transparent);
+  color: var(--bs-primary);
+  font-size: 1.25rem;
+  font-weight: bold;
+  white-space: nowrap;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--bs-primary) 70%, transparent);
+  opacity: 0;
+  transform: translate(-50%, 0);
+  pointer-events: none;
+}
 .transport { display: flex; align-items: center; gap: var(--bs-spacer-2); }
 .transport button {
   background: var(--bs-tertiary-bg);
@@ -77,7 +121,10 @@ a { color: var(--bs-info); }
   font-size: 1rem;
   line-height: 1;
 }
-.transport button:hover { border-color: var(--bs-primary); }
+.transport button { transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease; }
+.transport button:hover { border-color: var(--bs-primary); box-shadow: 0 0 10px color-mix(in srgb, var(--bs-primary) 40%, transparent); }
+.transport button:active { transform: scale(.92); }
+.transport [data-action="play-pause"] { border-color: var(--bs-primary); color: var(--bs-primary); }
 .transport .scrubber { flex: 1; accent-color: var(--bs-primary); }
 
 /* Stage 內容共用元件（各主題 render.js 會用到） */
@@ -134,7 +181,13 @@ a { color: var(--bs-info); }
   font-size: .875rem;
 }
 .chapters button:hover { border-color: var(--bs-primary); }
-.chapters button[aria-current] { color: var(--bs-body-bg); background: var(--bs-primary); border-color: var(--bs-primary); }
+.chapters button { transition: color .25s ease, background-color .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.chapters button[aria-current] {
+  color: var(--bs-body-bg);
+  background: var(--bs-primary);
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--bs-primary) 55%, transparent);
+}
 .step-counter { color: var(--bs-secondary-color); font-size: .875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* 主題頁的教學文字：動畫前說明要解決的問題，動畫後收斂成結論 */
@@ -161,7 +214,7 @@ a { color: var(--bs-info); }
 }
 .chip-long { border-color: var(--bs-warning); }
 .delta s { color: var(--bs-secondary-color); }
-.delta b { color: var(--bs-primary); }
+.delta b { color: var(--bs-primary); text-shadow: 0 0 8px color-mix(in srgb, var(--bs-primary) 60%, transparent); }
 
 /* 面板附帶的程式碼／語法片段：讓讀者把畫面上的行為對回實際會寫的程式 */
 .snippet {
@@ -187,6 +240,22 @@ a { color: var(--bs-info); }
   border-radius: var(--bs-border-radius-sm);
   background: var(--bs-tertiary-bg);
 }
+.flow-col { --fx-c: var(--bs-secondary-color); border-top: 2px solid color-mix(in srgb, var(--fx-c) 55%, var(--bs-border-color)); }
+/* 輸入／處理／輸出各配一個顏色：三段分得開，資料往哪一段流一眼就看得出 */
+.flow-col[data-col="input"], .flow-col[data-col="app"] { --fx-c: var(--bs-info); }
+.flow-col[data-col="process"], .flow-col[data-col="cache"] { --fx-c: var(--bs-warning); }
+.flow-col[data-col="output"], .flow-col[data-col="db"] { --fx-c: var(--bs-primary); }
+.flow-col h4::before {
+  content: "";
+  display: inline-block;
+  width: .5em;
+  height: .5em;
+  margin-right: .4em;
+  border-radius: 50%;
+  background: var(--fx-c);
+  box-shadow: 0 0 6px var(--fx-c);
+  vertical-align: .1em;
+}
 .flow-col h4 { margin: 0 0 var(--bs-spacer-2); font-family: var(--bs-font-sans-serif); font-size: .9375rem; }
 .flow-col-inline { display: flex; align-items: center; gap: var(--bs-spacer-3); } /* 內容只有一排時，標題和內容排同一列，省下垂直空間 */
 .flow-col-inline h4 { flex: none; margin: 0; }
@@ -196,7 +265,61 @@ a { color: var(--bs-info); }
 /* 需要並排比較的主題用寬版頁面，兩個面板才放得下 */
 .topic-page-wide { max-width: 1080px; }
 
+/* ===== 動態特效（motion.js 與各主題共用）=====
+   --fx-c 是特效顏色，預設主色；各主題可在元素上覆寫成歸屬色或警示色 */
+:root { --fx-c: var(--bs-primary); }
+
+/* 飛行中：發光，像一顆被丟出去的封包 */
+.fx-flying { z-index: 3; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--fx-c) 80%, transparent)); }
+.fx-ghost { pointer-events: none; filter: blur(1px) saturate(1.5); }
+/* 落地光環：絕對定位疊在場景上，由 motion.js 產生、動畫結束即移除 */
+.fx-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  border: 2px solid var(--fx-c);
+  border-radius: var(--bs-border-radius);
+  box-shadow: 0 0 12px var(--fx-c), inset 0 0 8px color-mix(in srgb, var(--fx-c) 50%, transparent);
+  transform-origin: center;
+  pointer-events: none;
+}
+/* 數字跳動時的發光 */
+.fx-pop { animation: fx-pop-glow .7s ease-out; }
+@keyframes fx-pop-glow {
+  0%, 100% { text-shadow: none; }
+  25% { text-shadow: 0 0 12px var(--fx-c), 0 0 24px var(--fx-c); }
+}
+/* 等待決定的目標：呼吸光暈 */
+@keyframes fx-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fx-c) 0%, transparent), 0 0 4px color-mix(in srgb, var(--fx-c) 30%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--fx-c) 28%, transparent), 0 0 18px color-mix(in srgb, var(--fx-c) 55%, transparent); }
+}
+/* 結果落定：一瞬間的閃光後留下穩定的光暈 */
+@keyframes fx-impact {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fx-c) 80%, transparent), 0 0 30px var(--fx-c); }
+  100% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--fx-c) 0%, transparent), 0 0 10px color-mix(in srgb, var(--fx-c) 35%, transparent); }
+}
+@keyframes fx-bump { 0% { transform: scale(1); } 30% { transform: scale(1.06); } 100% { transform: scale(1); } }
+/* 被拒絕／出錯：左右抖動，比換顏色更直覺地表達「不行」 */
+@keyframes fx-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+/* 連接線的資料流：亮點沿線移動，方向就是資料的方向 */
+@keyframes fx-wire-flow { to { stroke-dashoffset: -24; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+}
+
 @media (max-width: 760px) {
+  .chapter-banner { top: var(--bs-spacer-2); padding: var(--bs-spacer-1) var(--bs-spacer-3); font-size: .9375rem; }
+  .caption { font-size: .9375rem; }
+  .caption-box { padding: var(--bs-spacer-1) var(--bs-spacer-2); }
   .topic-page { padding: var(--bs-spacer-3); }
   .snippet { padding: var(--bs-spacer-1); font-size: .625rem; }
   .stage { padding: var(--bs-spacer-2); }

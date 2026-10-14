@@ -36,7 +36,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 使用者可以拖時間軸任意跳步與倒退，所以 **render 必須能只憑 `step`（加上 `prevStep`）畫出完整狀態**，不能依賴先前呼叫累積下來的狀態。所有推導（模擬、計數、歸屬）都在 `steps.js` 產生步驟時算好放進 `data`。
 
-播放器本身不做任何轉場。
+播放器不對舞台做任何轉場，只在舞台外圍加章節橫幅、說明文字進場與自動播放倒數條。
 
 ### 主題的畫法：常駐場景
 
@@ -47,6 +47,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - 因為位置是絕對座標，每個主題都要監聽 `resize` 重新對位。
 - 段與段之間的連接線是疊在場景上的 SVG，座標同樣由實際版面量出。
 - 數值變化以 `<span class="delta"><s>舊</s> → <b>新</b></span>` 顯示並呼叫 `pop()`。
+- 特效：`flyTo()` 會自動加上飛行發光、拖尾分身（`.fx-ghost`）與落地光環（`.fx-ring`），`pop()` 會加發光。狀態強調一律用 `base.css` 的共用 keyframes：`fx-pulse`（等待決定）、`fx-impact`（結果落定）、`fx-shake`（被拒絕／出錯）、`fx-bump`、`fx-wire-flow`（連接線流動）。特效顏色由 CSS 變數 `--fx-c` 決定，在元素上覆寫成歸屬色或警示色。已用 `transform` 定位的元素不可套用含 `transform` 的動畫（`fx-shake`、`fx-bump`）。
 
 ### 每個主題共同的教學結構
 

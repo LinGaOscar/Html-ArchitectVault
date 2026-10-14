@@ -2,9 +2,11 @@
 // steps: Array<{ id, caption, duration, data, chapter? }>
 // render: (step, stageElement, prevStep) => void
 //   prevStep 是時間軸上的前一步（第一步時為 undefined），讓各主題能標出「這一步變了什麼」。
-//   換步時播放器不做任何轉場；要流暢的主題自己在 stage 裡保留常駐元素，每一步只更新狀態，
+//   換步時播放器不對舞台做任何轉場（只在舞台外圍加章節橫幅、說明文字進場與倒數條）；要流暢的主題自己在 stage 裡保留常駐元素，每一步只更新狀態，
 //   讓同一個東西連續地移動、變色，而不是整塊重畫。
 // mount: HTMLElement，播放器 UI 會整個掛在這個節點底下
+import { reduceMotion } from './motion.js';
+
 export function initPlayer({ steps, render, mount }) {
   // 章節＝連續且 chapter 相同的一段步驟；沒標 chapter 的主題不顯示章節列
   const chapters = [];
@@ -22,8 +24,14 @@ export function initPlayer({ steps, render, mount }) {
   mount.innerHTML = `
     <div class="player">
       ${chaptersHtml}
-      <div class="stage" id="stage"></div>
-      <p class="caption" id="caption" aria-live="polite"></p>
+      <div class="stage-wrap">
+        <div class="stage" id="stage"></div>
+        <div class="chapter-banner" aria-hidden="true"></div>
+      </div>
+      <div class="caption-box">
+        <p class="caption" id="caption" aria-live="polite"></p>
+        <div class="step-progress" aria-hidden="true"><span></span></div>
+      </div>
       <div class="transport">
         <button type="button" data-action="prev" aria-label="上一步">⏮</button>
         <button type="button" data-action="play-pause" aria-label="播放">▶</button>
@@ -41,6 +49,9 @@ export function initPlayer({ steps, render, mount }) {
   const nextBtn = mount.querySelector('[data-action="next"]');
   const scrubberEl = mount.querySelector('.scrubber');
   const counterEl = mount.querySelector('.step-counter');
+  const bannerEl = mount.querySelector('.chapter-banner');
+  const progressEl = mount.querySelector('.step-progress span');
+  let progressAnim = null;
   const chapterBtns = Array.from(mount.querySelectorAll('[data-chapter-index]'));
 
   let currentIndex = 0;
@@ -50,8 +61,20 @@ export function initPlayer({ steps, render, mount }) {
   function goTo(index) {
     currentIndex = Math.min(Math.max(index, 0), steps.length - 1);
     const step = steps[currentIndex];
+    const prevChapter = captionEl.dataset.chapter;
     render(step, stageEl, steps[currentIndex - 1]);
-    captionEl.textContent = step.caption;
+    if (captionEl.textContent !== step.caption) {
+      captionEl.textContent = step.caption;
+      // 說明文字從下方滑入：每一步換句話時，讀者才注意到「現在講到下一件事了」
+      if (!reduceMotion) {
+        captionEl.animate(
+          [{ opacity: 0, transform: 'translateY(8px)', filter: 'blur(3px)' }, { opacity: 1, transform: 'none', filter: 'none' }],
+          { duration: 380, easing: 'cubic-bezier(.2, .8, .3, 1)' },
+        );
+      }
+    }
+    captionEl.dataset.chapter = step.chapter || '';
+    if (step.chapter && step.chapter !== prevChapter) showBanner(step.chapter);
     scrubberEl.value = String(currentIndex);
     counterEl.textContent = `${currentIndex + 1} / ${steps.length}`;
     chapterBtns.forEach((btn) => {
@@ -60,7 +83,30 @@ export function initPlayer({ steps, render, mount }) {
     });
   }
 
+  // 進入新章節時在舞台中央打出章節名稱：段落切換得夠醒目，讀者才跟得上整段教學的結構
+  function showBanner(name) {
+    if (reduceMotion) return;
+    bannerEl.textContent = name;
+    bannerEl.getAnimations().forEach((a) => a.cancel());
+    bannerEl.animate(
+      [
+        { opacity: 0, transform: 'translate(-50%, 0) scale(.6)', letterSpacing: '.5em' },
+        { opacity: 1, transform: 'translate(-50%, 0) scale(1.06)', letterSpacing: '.12em', offset: 0.25 },
+        { opacity: 1, transform: 'translate(-50%, 0) scale(1)', letterSpacing: '.08em', offset: 0.75 },
+        { opacity: 0, transform: 'translate(-50%, -12px) scale(.96)', letterSpacing: '.08em' },
+      ],
+      { duration: 1500, easing: 'cubic-bezier(.2, .8, .3, 1)' },
+    );
+  }
+
+  // 自動播放時，說明下方的細條會在這一步的停留時間內填滿：讀者知道下一步什麼時候來
+  function runProgress(duration) {
+    if (progressAnim) progressAnim.cancel();
+    progressAnim = progressEl.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration, fill: 'forwards' });
+  }
+
   function pause() {
+    if (progressAnim) progressAnim.cancel();
     playing = false;
     playPauseBtn.textContent = '▶';
     playPauseBtn.setAttribute('aria-label', '播放');
@@ -70,6 +116,7 @@ export function initPlayer({ steps, render, mount }) {
   function scheduleNext() {
     clearTimeout(timerId);
     const current = steps[currentIndex];
+    runProgress(current.duration);
     timerId = setTimeout(() => {
       if (currentIndex >= steps.length - 1) {
         pause();

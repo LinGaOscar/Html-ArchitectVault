@@ -19,9 +19,8 @@
 
 .ch-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .ch-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease, opacity .3s ease; }
-.ch-wire.is-active { stroke: var(--bs-body-color); stroke-dasharray: 6 6; animation: ch-wire-flow .5s linear infinite; }
+.ch-wire.is-active { --fx-c: var(--ch-c, var(--bs-body-color)); stroke: var(--ch-c, var(--bs-body-color)); stroke-width: 3; stroke-dasharray: 10 14; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--fx-c)); animation: fx-wire-flow .45s linear infinite; }
 .ch-wire.is-absent { opacity: 0; }
-@keyframes ch-wire-flow { to { stroke-dashoffset: -12; } }
 
 .ch-slotbox {
   display: inline-block;
@@ -35,6 +34,7 @@
 .ch-queue, .ch-chips { display: flex; flex-wrap: wrap; gap: var(--bs-spacer-1); }
 .ch-tokens { position: absolute; inset: 0; pointer-events: none; }
 .ch-token { position: absolute; left: 0; top: 0; will-change: transform; }
+.ch-token { --fx-c: var(--ch-c, var(--bs-body-color)); }
 .ch-token .chip {
   position: relative;
   display: flex;
@@ -46,10 +46,11 @@
   border-color: var(--ch-c, var(--bs-border-color));
   background: color-mix(in srgb, var(--ch-c, transparent) 18%, var(--bs-secondary-bg));
 }
-.ch-token.is-current .chip { box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-body-color) 28%, transparent); }
+.ch-token.is-current .chip { animation: fx-pulse 1s ease-in-out infinite; }
 /* 受影響：虛線外框，還沒搬；搬家了：實線外框加「搬」標記 */
 .ch-token.is-marked .chip { outline: 2px dashed var(--bs-body-color); outline-offset: 2px; }
-.ch-token.is-moved .chip { outline: 2px solid var(--bs-body-color); outline-offset: 2px; }
+.ch-token.is-marked .chip { animation: fx-shake .45s ease-out; }
+.ch-token.is-moved .chip { outline: 2px solid var(--bs-body-color); outline-offset: 2px; animation: fx-impact .8s ease-out forwards; }
 .ch-token.is-moved .chip::after {
   content: "搬";
   position: absolute;
@@ -76,7 +77,8 @@
   fill: none;
   stroke: var(--ch-c);
   stroke-width: 8;
-  opacity: .55;
+  opacity: .6;
+  filter: drop-shadow(0 0 4px var(--ch-c));
   transition: stroke-dasharray .7s ease, stroke-dashoffset .7s ease, opacity .5s ease;
 }
 .ch-arc.is-absent { opacity: 0; }
@@ -87,13 +89,13 @@
   opacity: 0;
   transition: stroke-dasharray .6s ease, stroke-dashoffset .6s ease, opacity .3s ease;
 }
-.ch-sweep.is-on { opacity: .9; }
+.ch-sweep.is-on { opacity: .9; filter: drop-shadow(0 0 5px var(--bs-body-color)); }
 .ch-tick { fill: var(--bs-secondary-color); font-size: 8px; text-anchor: middle; dominant-baseline: middle; }
 .ch-mark circle { fill: var(--bs-secondary-bg); stroke: var(--ch-c); stroke-width: 2.5; transition: opacity .4s ease, stroke-width .3s ease; }
 .ch-mark text, .ch-ghost text { fill: var(--bs-body-color); font-size: 10px; text-anchor: middle; dominant-baseline: central; }
 .ch-mark { transition: opacity .4s ease; }
 .ch-mark.is-absent { opacity: .15; }
-.ch-mark.is-target circle { stroke-width: 5; }
+.ch-mark.is-target circle { stroke-width: 5; filter: drop-shadow(0 0 6px var(--ch-c)); }
 .ch-ghost { opacity: 0; transition: opacity .4s ease; }
 .ch-ghost.is-shown { opacity: 1; }
 .ch-ghost circle { fill: color-mix(in srgb, var(--ch-c, transparent) 45%, var(--bs-secondary-bg)); stroke: var(--ch-c, none); stroke-width: 1.5; transition: fill .5s ease, stroke .5s ease; }
@@ -111,7 +113,8 @@
   background: var(--bs-secondary-bg);
   transition: border-color .3s ease, background-color .3s ease, opacity .4s ease;
 }
-.ch-node.is-target { background: color-mix(in srgb, var(--ch-c) 12%, var(--bs-secondary-bg)); }
+.ch-node { --fx-c: var(--ch-c); }
+.ch-node.is-target { background: color-mix(in srgb, var(--ch-c) 18%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-bump .4s ease-out; }
 .ch-node.is-absent { opacity: .35; border-style: dashed; }
 .ch-nname { font-size: .8125rem; font-weight: bold; }
 .ch-nsub, .ch-count { color: var(--bs-secondary-color); font-size: .75rem; min-height: 1.2em; }

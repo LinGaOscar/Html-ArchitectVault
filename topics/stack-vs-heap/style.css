@@ -18,7 +18,8 @@
   height: var(--sh-lh);
   border-left: 3px solid var(--bs-primary);
   border-radius: var(--bs-border-radius-sm);
-  background: color-mix(in srgb, var(--bs-primary) 18%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--bs-primary) 30%, transparent), color-mix(in srgb, var(--bs-primary) 4%, transparent));
+  box-shadow: -4px 0 12px color-mix(in srgb, var(--bs-primary) 50%, transparent);
   opacity: 0;
   transition: transform .45s cubic-bezier(.3, 1.2, .5, 1), opacity .3s ease;
 }
@@ -61,7 +62,7 @@
 .sh-ctr { display: inline-block; }
 .sh-foot { margin: var(--bs-spacer-1) 0 0; color: var(--bs-secondary-color); font-size: .75rem; }
 .sh-foot b { color: var(--bs-body-color); }
-.sh-leaked.is-bad b { color: var(--bs-danger); }
+.sh-leaked.is-bad b { --fx-c: var(--bs-danger); color: var(--bs-danger); text-shadow: 0 0 8px var(--bs-danger); }
 
 .sh-stack {
   position: relative;
@@ -84,7 +85,7 @@
   transition: transform .55s cubic-bezier(.3, 1.2, .5, 1), opacity .45s ease, border-color .3s ease, box-shadow .3s ease;
 }
 .sh-frame[data-status="live"] { opacity: 1; }
-.sh-frame.is-top { border-color: var(--bs-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-primary) 22%, transparent); }
+.sh-frame.is-top { border-color: var(--bs-primary); animation: fx-pulse 1.4s ease-in-out infinite; }
 .sh-fhead { display: flex; align-items: center; height: 1.5rem; font-family: var(--bs-font-sans-serif); font-size: .8125rem; font-weight: bold; }
 .sh-var {
   display: flex;
@@ -98,7 +99,7 @@
   transition: background-color .5s ease, color .3s ease;
 }
 .sh-var.is-set .sh-vv { color: var(--bs-primary); }
-.sh-var.is-new { background: color-mix(in srgb, var(--bs-primary) 20%, transparent); }
+.sh-var.is-new { background: color-mix(in srgb, var(--bs-primary) 20%, transparent); animation: fx-impact .6s ease-out; }
 
 .sh-heap { position: relative; height: var(--sh-area); }
 .sh-grid {
@@ -133,17 +134,19 @@
 }
 .sh-block[data-state="idle"], .sh-block[data-state="freed"] { opacity: 0; }
 .sh-block[data-state="transit"] { border-style: dashed; border-color: var(--bs-info); background: color-mix(in srgb, var(--bs-info) 14%, var(--bs-secondary-bg)); }
-.sh-block[data-state="leak"] { border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 20%, var(--bs-secondary-bg)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-danger) 25%, transparent); }
-.sh-block.is-new[data-state="live"] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-primary) 35%, transparent); }
+.sh-block { --fx-c: var(--bs-warning); }
+.sh-block[data-state="transit"] { --fx-c: var(--bs-info); }
+/* 洩漏的區塊像警報燈一樣持續閃紅：沒人指得到、卻一直佔著記憶體 */
+.sh-block[data-state="leak"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 20%, var(--bs-secondary-bg)); animation: fx-pulse .9s ease-in-out infinite; }
+.sh-block.is-new[data-state="live"] { --fx-c: var(--bs-primary); animation: fx-impact .8s ease-out forwards; }
 .sh-btag { flex-basis: 100%; font-family: var(--bs-font-sans-serif); font-size: .6875rem; }
 .sh-block[data-state="transit"] .sh-btag { color: var(--bs-info); }
 .sh-block[data-state="leak"] .sh-btag { color: var(--bs-danger); font-weight: bold; }
 
 .sh-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .sh-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease; }
-.sh-wire.is-active { stroke: var(--bs-primary); stroke-dasharray: 6 6; animation: sh-flow .5s linear infinite; }
-@keyframes sh-flow { to { stroke-dashoffset: -12; } }
-.sh-ptr { fill: none; stroke: var(--bs-primary); stroke-width: 2; opacity: 0; transition: opacity .45s ease; }
+.sh-wire.is-active { stroke: var(--bs-primary); stroke-width: 3; stroke-dasharray: 10 14; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--fx-c)); animation: fx-wire-flow .45s linear infinite; }
+.sh-ptr { fill: none; stroke: var(--bs-primary); stroke-width: 2; opacity: 0; filter: drop-shadow(0 0 3px var(--bs-primary)); transition: opacity .45s ease; }
 .sh-ptr.is-on { opacity: 1; }
 .sh-arrowhead { fill: var(--bs-primary); }
 

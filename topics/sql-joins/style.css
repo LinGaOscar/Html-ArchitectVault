@@ -48,18 +48,18 @@
 .sj-null { color: var(--bs-warning); }
 
 /* 列的狀態：current 是游標正在比對，hit 是被找到的配對，ok 配對完成，keep 保留並補 NULL，drop 被丟掉 */
-.sj-row[data-state="current"] { background: color-mix(in srgb, var(--bs-primary) 14%, transparent); }
-.sj-row[data-state="hit"] { border-color: color-mix(in srgb, var(--bs-success) 70%, transparent); background: color-mix(in srgb, var(--bs-success) 10%, transparent); }
+.sj-row[data-state="current"] { background: color-mix(in srgb, var(--bs-primary) 20%, transparent); color: var(--bs-primary); }
+.sj-row[data-state="hit"] { --fx-c: var(--bs-success); border-color: var(--bs-success); background: color-mix(in srgb, var(--bs-success) 16%, transparent); animation: fx-impact .6s ease-out forwards; }
 .sj-row[data-state="ok"] { background: color-mix(in srgb, var(--bs-success) 14%, transparent); }
 .sj-row[data-state="ok"] .sj-mark { color: var(--bs-success); }
-.sj-row[data-state="keep"] { background: color-mix(in srgb, var(--bs-warning) 20%, transparent); }
+.sj-row[data-state="keep"] { --fx-c: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 20%, transparent); animation: fx-impact .6s ease-out; }
 .sj-row[data-state="keep"] .sj-mark { color: var(--bs-warning); }
-.sj-row[data-state="drop"] { background: color-mix(in srgb, var(--bs-danger) 18%, transparent); color: var(--bs-secondary-color); }
+.sj-row[data-state="drop"] { background: color-mix(in srgb, var(--bs-danger) 18%, transparent); color: var(--bs-secondary-color); text-decoration: line-through; text-decoration-color: var(--bs-danger); animation: fx-shake .45s ease-out; }
 .sj-row[data-state="drop"] .sj-mark { color: var(--bs-danger); }
 
 .sj-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .sj-wire { fill: none; stroke: transparent; stroke-width: 2; transition: stroke .3s ease; }
-.sj-wire.is-active { stroke: var(--bs-primary); }
+.sj-wire.is-active { stroke: var(--bs-primary); stroke-width: 3; stroke-dasharray: 10 14; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--fx-c)); animation: fx-wire-flow .45s linear infinite; }
 .sj-wire.is-done { stroke: color-mix(in srgb, var(--bs-success) 45%, transparent); }
 
 .sj-overlay { position: absolute; inset: 0; pointer-events: none; }
@@ -71,6 +71,7 @@
   border: 2px solid var(--bs-primary);
   border-radius: var(--bs-border-radius-sm);
   opacity: 0;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--bs-primary) 60%, transparent), inset 0 0 6px color-mix(in srgb, var(--bs-primary) 35%, transparent);
   transition: transform .5s cubic-bezier(.3, 1.2, .5, 1), width .5s ease, height .5s ease, opacity .3s ease;
 }
 .sj-token {
@@ -90,8 +91,9 @@
   will-change: transform;
   transition: opacity .35s ease, box-shadow .3s ease;
 }
-.sj-token-null { border-color: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 22%, var(--bs-secondary-bg)); }
-.sj-token.is-new { box-shadow: 0 0 0 3px color-mix(in srgb, var(--bs-primary) 35%, transparent); }
+.sj-token { --fx-c: var(--bs-success); }
+.sj-token-null { --fx-c: var(--bs-warning); border-color: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 22%, var(--bs-secondary-bg)); }
+.sj-token.is-new { animation: fx-impact .8s ease-out forwards; }
 .sj-token.is-gone { opacity: 0; }
 
 .sj-compare .sj-title { display: block; margin-bottom: var(--bs-spacer-3); }
