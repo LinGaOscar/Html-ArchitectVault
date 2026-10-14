@@ -1,0 +1,11 @@
+/* 重試與熔斷主題專屬樣式；時間軸共用樣式在 assets/css/timeline.css，面板外殼沿用 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的時間軸才對得齊 */
+.rs-page .dg-rule { min-height: 7em; }
+.rs-page .dg-code { min-height: calc(6em + 2 * var(--bs-spacer-2) + 2px); }
+.rs-page .tl-chart { --lw: 5.5rem; }
+/* 每次嘗試畫成小圓點；立即重試每 100ms 一點，密到連成一條線，正好呈現「一直在打」 */
+.rs-page .tl-mark i { left: -3px; top: -3px; width: 6px; height: 6px; border-width: 1px; box-shadow: none; }
+@media (max-width: 760px) {
+  .rs-page .dg-rule, .rs-page .dg-code { min-height: 0; }
+  .rs-page .tl-chart { --lw: 4rem; }
+}

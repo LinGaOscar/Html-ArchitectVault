@@ -14,12 +14,8 @@
     <p class="page-subtitle">給系統架構師的互動動畫參考，播放、暫停、單步、拖曳時間軸，逐步看懂每個概念。</p>
 
     <section class="topic-section">
-      <h2>基礎篇</h2>
+      <h2>基礎篇<small>程式在一台機器上怎麼跑</small></h2>
       <div class="topic-grid">
-        <a class="topic-card" href="./topics/sql-joins/">
-          <h3>SQL Joins</h3>
-          <p>INNER / LEFT / RIGHT / FULL OUTER JOIN 逐步套用</p>
-        </a>
         <a class="topic-card" href="./topics/stack-vs-heap/">
           <h3>Stack vs Heap</h3>
           <p>函式呼叫時堆疊與堆積的記憶體配置過程</p>
@@ -28,7 +24,37 @@
     </section>
 
     <section class="topic-section">
-      <h2>架構篇</h2>
+      <h2>資料篇<small>資料怎麼查、怎麼放、怎麼保持一致</small></h2>
+      <div class="topic-grid">
+        <a class="topic-card" href="./topics/sql-joins/">
+          <h3>SQL Joins</h3>
+          <p>INNER / LEFT / RIGHT / FULL OUTER JOIN 逐步套用</p>
+        </a>
+        <a class="topic-card" href="./topics/tx-isolation/">
+          <h3>交易隔離等級</h3>
+          <p>Read Committed / Repeatable Read / Serializable</p>
+        </a>
+        <a class="topic-card" href="./topics/db-replication/">
+          <h3>資料庫複寫</h3>
+          <p>同步 / 非同步 / 多主複寫：延遲、遺失與衝突</p>
+        </a>
+        <a class="topic-card" href="./topics/cache-strategies/">
+          <h3>Cache 讀寫策略</h3>
+          <p>Cache-Aside / Write-Through / Write-Back</p>
+        </a>
+        <a class="topic-card" href="./topics/consistent-hashing/">
+          <h3>Consistent Hashing</h3>
+          <p>一致性雜湊環，新增/移除節點只影響鄰近區段</p>
+        </a>
+        <a class="topic-card" href="./topics/cqrs/">
+          <h3>CQRS</h3>
+          <p>CRUD / CQRS / Event Sourcing 的讀寫分離</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="topic-section">
+      <h2>架構篇<small>程式碼和系統怎麼組織</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/app-architecture/">
           <h3>程式內部分層</h3>
@@ -42,15 +68,11 @@
           <h3>系統部署架構</h3>
           <p>單體式 / 模組化單體 / 微服務的影響範圍</p>
         </a>
-        <a class="topic-card" href="./topics/cqrs/">
-          <h3>CQRS</h3>
-          <p>CRUD / CQRS / Event Sourcing 的讀寫分離</p>
-        </a>
       </div>
     </section>
 
     <section class="topic-section">
-      <h2>前後端通訊篇</h2>
+      <h2>通訊篇<small>元件之間怎麼溝通</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/api-sync-async/">
           <h3>前端呼叫 API</h3>
@@ -60,27 +82,23 @@
           <h3>長時間工作</h3>
           <p>同步等待 / 202 + 輪詢 / WebSocket、SSE 推播</p>
         </a>
+        <a class="topic-card" href="./topics/kafka-vs-rabbitmq/">
+          <h3>Kafka vs RabbitMQ</h3>
+          <p>訊息推走即刪 vs 寫進 log 保留重播</p>
+        </a>
       </div>
     </section>
 
     <section class="topic-section">
-      <h2>系統設計篇</h2>
+      <h2>擴展與可靠性篇<small>流量變大、出錯時怎麼撐住</small></h2>
       <div class="topic-grid">
         <a class="topic-card" href="./topics/load-balancer/">
           <h3>Load Balancer</h3>
           <p>Round Robin / Least Connections 兩種分配演算法</p>
         </a>
-        <a class="topic-card" href="./topics/cache-strategies/">
-          <h3>Cache 讀寫策略</h3>
-          <p>Cache-Aside / Write-Through / Write-Back</p>
-        </a>
-        <a class="topic-card" href="./topics/consistent-hashing/">
-          <h3>Consistent Hashing</h3>
-          <p>一致性雜湊環，新增/移除節點只影響鄰近區段</p>
-        </a>
-        <a class="topic-card" href="./topics/kafka-vs-rabbitmq/">
-          <h3>Kafka vs RabbitMQ</h3>
-          <p>訊息推走即刪 vs 寫進 log 保留重播</p>
+        <a class="topic-card" href="./topics/resilience/">
+          <h3>重試與熔斷</h3>
+          <p>立即重試 / 指數退避 / 熔斷器：下游故障時怎麼撐住</p>
         </a>
       </div>
     </section>

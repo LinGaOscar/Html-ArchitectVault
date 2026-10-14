@@ -10,6 +10,10 @@
 [data-tone="ok"] { --tl-c: var(--bs-success); }
 [data-tone="click"] { --tl-c: var(--bs-body-color); }
 [data-tone="poll"] { --tl-c: var(--bs-info); }
+[data-tone="read"] { --tl-c: var(--bs-info); }
+[data-tone="write"] { --tl-c: var(--bs-primary); }
+[data-tone="wait"] { --tl-c: var(--bs-warning); }
+[data-tone="repl"] { --tl-c: var(--bs-purple); }
 
 .tl-chart {
   --lw: 4.75rem; /* 泳道名稱欄寬；游標與刻度都要扣掉這一欄才對得到時間 */
@@ -57,6 +61,10 @@
   background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tl-c) 45%, var(--bs-secondary-bg)) 0 6px, color-mix(in srgb, var(--tl-c) 20%, var(--bs-secondary-bg)) 6px 12px);
 }
 .tl-bar[data-tone="abort"], .tl-bar[data-tone="err"] { border-style: dashed; }
+/* 等待（鎖、從庫確認）用斜紋：跟「主執行緒卡住」一樣是乾等，但顏色不同，代表等的是別人 */
+.tl-bar[data-tone="wait"] {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--tl-c) 40%, var(--bs-secondary-bg)) 0 5px, color-mix(in srgb, var(--tl-c) 15%, var(--bs-secondary-bg)) 5px 10px);
+}
 .tl-bar[data-tone="abort"] span { text-decoration: line-through; }
 
 .tl-mark { position: absolute; top: 50%; z-index: 2; width: 0; height: 0; opacity: 0; transition: opacity .3s ease; }

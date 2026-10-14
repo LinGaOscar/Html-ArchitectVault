@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>資料庫複寫 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide rp-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>資料庫複寫：同步 vs 非同步 vs 多主</h1>
+    <section class="lesson-intro">
+      <p>把資料複製到多台資料庫，可以分散讀取、在主庫故障時接手，也能讓不同區域的使用者就近存取。問題是「複製」需要時間：主庫要等另一台確認才回覆成功嗎？兩台在同一時間看到的資料一樣嗎？這三種做法對這兩個問題的答案不同，而且沒有一種在所有情境都贏。</p>
+      <p class="lesson-watch">每個面板有四條泳道：兩位使用者、兩台資料庫。留意使用者等多久才收到「成功」、另一台資料庫什麼時候才有新資料，以及主庫故障、兩地同時修改時，哪一個方案讓回覆過的成功變成謊言。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>同步複寫</dt>
+        <dd>主庫等從庫確認才回覆成功，所以回覆過的資料一定存在至少兩台，主庫故障也不會遺失；從庫隨時跟主庫一致。代價是每筆寫入都多一趟來回，從庫一慢或斷線，所有寫入跟著變慢或卡住。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>金流、帳務這類資料，「說成功卻不見」的代價遠高於慢幾百毫秒。把「至少兩台都有」當作成功的定義，用寫入延遲換取不遺失的保證。</dd>
+        <dt>非同步複寫</dt>
+        <dd>主庫自己寫完就回覆，變更稍後才送到從庫。寫入最快，也不受從庫狀況影響；但從庫會落後一小段時間（複寫延遲），主庫故障時還沒送出的變更會遺失。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>大部分網站讀多寫少，加從庫是為了分攤讀取、提高可用性，而不是為了每筆都零遺失。讓寫入不被從庫拖累，換來的速度與穩定性對多數系統更重要，所以它是 MySQL、PostgreSQL 的預設。</dd>
+        <dt>多主複寫</dt>
+        <dd>多台主庫都能接受寫入，彼此非同步交換變更。每個區域就近寫入，一台故障其他照常運作；但兩台可能同時改到同一筆，必須有衝突處理規則（最後寫入者勝、合併、交給使用者決定），處理不好就會默默丟資料。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>當使用者分散在不同大陸，或裝置要能離線編輯（行事曆、筆記、協作文件），把所有寫入送回同一台主庫太慢、也不可行。讓每個地方都能寫，再處理衝突，是為了延遲與可用性而接受複雜度。</dd>
+        <dt>常見折衷</dt>
+        <dd>半同步複寫：只等「其中一台」從庫確認，兼顧安全與速度。讀自己剛寫的資料（read-your-writes）時改讀主庫，或記住寫入的版本，等從庫追上再讀。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

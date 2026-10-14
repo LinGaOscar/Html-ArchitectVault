@@ -24,6 +24,8 @@ a { color: var(--bs-info); }
   letter-spacing: .05em;
   margin-bottom: var(--bs-spacer-3);
 }
+/* 篇名旁的副標寫出這一篇回答的問題，讀者才知道該往哪一篇找 */
+.topic-section h2 small { margin-left: var(--bs-spacer-2); font-size: .8125rem; font-weight: normal; letter-spacing: 0; text-transform: none; opacity: .8; }
 .topic-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

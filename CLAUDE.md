@@ -62,9 +62,9 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 ### 時間軸主題：共用時間軸引擎
 
-`api-sync-async`、`long-task` 比較的是「同一段時間裡誰在等、誰被卡住」，用甘特圖式的時間軸呈現：
+`api-sync-async`、`long-task`、`tx-isolation`、`db-replication`、`resilience` 比較的是「同一段時間裡誰在等、誰被卡住、資料何時到哪裡」，用甘特圖式的時間軸呈現：
 
-- `assets/js/engine/timeline.js`：`createTimelineRender({ systems, compare, maxLanes, legend })`。每一步的 view 給 `span`、`unit`、時間游標 `t`、泳道 `lanes`、橫條 `bars`（`tone` 決定顏色：`block` 主執行緒卡住、`work`、`net`、`conn`、`job`、`abort`、`err`）與瞬間標記 `marks`。橫條依 id 建立後常駐，游標推進時跟著長出來；只有往後一步才播生長轉場，倒退與跳步直接定格。
+- `assets/js/engine/timeline.js`：`createTimelineRender({ systems, compare, maxLanes, legend })`。每一步的 view 給 `span`、`unit`、時間游標 `t`、泳道 `lanes`、橫條 `bars`（`tone` 決定顏色：`block` 卡住、`work`、`net`、`conn`、`job`、`abort`、`err`、`read`、`write`、`wait`、`repl`、`ok`）。`legend` 可以寫 tone 名稱用預設說明，或寫 `{ tone, label }` 換成主題自己的說法與瞬間標記 `marks`。橫條依 id 建立後常駐，游標推進時跟著長出來；只有往後一步才播生長轉場，倒退與跳步直接定格。
 - 同一條泳道上相鄰的標記文字會疊在一起，標記要分散到不同泳道或縮短文字；標記在時間軸右半邊時文字自動往左長。
 - `assets/css/timeline.css`：時間軸樣式；面板外殼、輸出區、摘要、對照表沿用 `diagram.css`。
 
@@ -83,7 +83,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - `assets/css/tokens.css`：顏色、間距、圓角變數（Bootstrap 風格命名）。預設深色，`:root[data-scheme="light"]` 是淺色版，只換色值不換變數名稱。色值與尺寸一律引用這些變數，不可寫死顏色，否則切到淺色會壞掉。
 - `assets/js/theme.js`：每一頁在 `<head>` 用一般 `<script>`（不是 module）同步載入，在第一次繪製前設好 `data-scheme`，並在 `main` 右上角插入深淺色開關；選擇存在 localStorage，沒選過就跟隨作業系統。用 `data-scheme` 而不是 `data-theme`，是因為 artifact 的外框會在頁面根元素設自己的 `data-theme`。新增頁面要記得加這個 script。
 - `assets/css/base.css`：全站共用，包含播放器外殼、`.chip`、`.delta`、`.flow`、`.topic-page-wide`、教學文字區塊。`.stage` 用 `order: 1` 排在說明文字與控制列之後。
-- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-`，時間軸主題用 `as-`、`lt-` 作為頁面 class；共用架構圖用 `dg-`，共用時間軸用 `tl-`）。
+- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-`，時間軸主題用 `as-`、`lt-`、`ti-`、`rp-`、`rs-` 作為頁面 class；共用架構圖用 `dg-`，共用時間軸用 `tl-`）。
 - 手機版斷點是 `max-width: 760px`。並排的面板在手機上仍維持並排（或改成面板直排、面板內橫排），做法是縮小字與格子；放不下的文字同時輸出長短兩版，用 `*-wide` / `*-narrow` class 切換。390px 寬時頁面與舞台都不可橫向捲動。
 
 ### 其他目錄
@@ -94,5 +94,5 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 ## 慣例
 
 - 文字與註解用繁體中文，技術名詞保留英文；註解寫「為什麼」（教學上的理由），不寫「做了什麼」。
-- 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。
+- 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。首頁依「這一篇回答什麼問題」分篇：基礎篇（單機程式怎麼跑）、資料篇（資料怎麼查、怎麼放、怎麼保持一致）、架構篇（程式碼和系統怎麼組織）、通訊篇（元件之間怎麼溝通）、擴展與可靠性篇（流量變大、出錯時怎麼撐住）。
 - 驗證：使用者在 artifact（https://claude.ai/artifact/3GcLHdu6GLwH1hj6WjMs4F）上看結果，不要跑本機瀏覽器測試（localhost）。改完只做 `node --check` 與 steps 資料檢查，再更新 artifact。artifact 的首頁是另外產生的版本，主題連結要寫成 `./topics/<名稱>/index.html`。

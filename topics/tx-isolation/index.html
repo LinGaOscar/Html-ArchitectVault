@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>交易隔離等級 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide ti-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>交易隔離等級：Read Committed vs Repeatable Read vs Serializable</h1>
+    <section class="lesson-intro">
+      <p>資料庫同時跑很多筆交易，如果每筆都要等前一筆結束，效能會很差；但讓它們並行，就可能互相干擾：讀到一半資料被改掉，或兩筆各自合理的交易合起來違反規則。隔離等級決定資料庫要擋掉哪些干擾，擋得越多，並行能力越差。</p>
+      <p class="lesson-watch">三個面板跑的是完全一樣的交易，只有隔離等級不同。最下面一條是資料庫裡已提交的值。留意報表第二次讀到的數字，以及兩位醫師同時請假後，值班表最後剩幾個人。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>Read Committed</dt>
+        <dd>只保證不會讀到別人還沒提交的資料（髒讀）。每次讀取都拿當下最新的已提交值，所以同一筆交易讀兩次可能不一樣（不可重複讀），也擋不住寫入偏斜。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>大多數交易很短，讀一次就做完，前後不一致的機會很小。每次讀最新值不必保留舊版本太久，鎖也最少，並行能力最好，所以成為多數資料庫的預設。</dd>
+        <dt>Repeatable Read（快照隔離）</dt>
+        <dd>交易開始時拍一張快照，整筆交易都讀這張快照，同一筆資料讀幾次都一樣。但交易會根據「可能已經過期」的快照做決定，兩筆交易改不同的資料列時，合起來仍可能違反規則（寫入偏斜）。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>報表、匯出這類長時間的讀取需要一個前後一致的畫面，又不能為了它鎖住整張表、擋住所有寫入。保留舊版本讓讀和寫互不阻擋（MVCC），是一致性與效能之間的折衷。</dd>
+        <dt>Serializable</dt>
+        <dd>保證結果等同於所有交易依序一筆一筆執行。資料庫偵測到並行會造成矛盾時，讓其中一筆提交失敗，應用程式要捕捉錯誤並重試整筆交易。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>有些規則跨越多筆資料（至少一人值班、庫存不可為負、帳戶總額不變），只檢查自己改的那一列不夠。與其讓每個開發者自己判斷該鎖哪些資料，不如由資料庫保證「跟依序執行一樣」，把正確性的責任收回資料庫。</dd>
+        <dt>實務做法</dt>
+        <dd>多數系統維持預設的 Read Committed，只在真正需要的交易上提高到 Serializable，或用 SELECT … FOR UPDATE 明確鎖住要檢查的資料列。更低的 Read Uncommitted 連別人沒提交的資料都會讀到，幾乎不會使用。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

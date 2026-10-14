@@ -1,0 +1,8 @@
+/* 交易隔離等級主題專屬樣式；時間軸共用樣式在 assets/css/timeline.css，面板外殼沿用 assets/css/diagram.css */
+/* 三個面板的說明長短不一，桌機並排時固定高度，下面的時間軸才對得齊 */
+.ti-page .dg-rule { min-height: 5.6em; }
+.ti-page .tl-chart { --lw: 6rem; } /* 泳道名稱「已提交的值班表」較長 */
+@media (max-width: 760px) {
+  .ti-page .dg-rule { min-height: 0; }
+  .ti-page .tl-chart { --lw: 4.25rem; }
+}

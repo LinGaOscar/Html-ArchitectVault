@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>重試與熔斷 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide rs-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>重試與熔斷：立即重試 vs 指數退避 vs 熔斷器</h1>
+    <section class="lesson-intro">
+      <p>呼叫其他服務一定會遇到失敗。重試能撐過短暫的抖動，但當下游真的掛了，所有呼叫端一起重試，會把一個正在故障、正要恢復的服務再次壓垮。這個主題比較三種呼叫端的反應方式：它們對同一次故障，造成的負擔與恢復時間差很多。</p>
+      <p class="lesson-watch">每個面板有五條泳道：下游狀態、下游負載、熔斷器狀態，以及兩個代表性請求的每一次嘗試（紅點失敗、灰點被熔斷器擋下、綠點成功）。留意下游修好的那一刻（第 4 秒）負載怎麼變化，以及下游是不是真的恢復了。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>立即重試</dt>
+        <dd>失敗就馬上再試。對瞬間的網路抖動有效，但下游真的故障時，每個呼叫端都以最高頻率轟炸它；下游修好的那一刻，累積的請求同時湧入，超過容量又把它壓垮（重試風暴），直到呼叫端放棄才停。</dd>
+        <dd class="lesson-why"><b>為什麼會有人這樣做</b>它是最直覺的寫法，很多用戶端函式庫預設就會重試。在單一呼叫端、偶發失敗的情況下看起來沒問題，問題要到大量呼叫端同時遇上真正的故障才會出現。</dd>
+        <dt>指數退避＋jitter</dt>
+        <dd>每次失敗後等待時間加倍，給下游喘息空間；再在 0 到上限之間隨機挑一個時間（full jitter），讓同時失敗的請求錯開重試，下游恢復時不會被同一波請求淹沒。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>故障越久，代表問題越不像是瞬間抖動，越該放慢；而「大家同時重試」才是重試風暴的根源，只要把時間打散，總請求量不變，尖峰卻能降低一個數量級。</dd>
+        <dt>熔斷器（Circuit Breaker）</dt>
+        <dd>像電路的保險絲：失敗率超過門檻就斷開，斷開期間直接回失敗、完全不打下游；過一段時間進入半開，放少量請求試探，成功才恢復放行。代價是試探成功前，連可能成功的請求也被擋下，恢復會晚一點。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>下游明顯掛掉時，繼續呼叫只會浪費自己的執行緒與連線，還拖慢對方的修復，甚至讓故障一路往上游擴散（雪崩）。「快速失敗」讓呼叫端能立刻改走備案（顯示稍後再試、用快取資料），也讓下游有機會恢復。</dd>
+        <dt>一起用</dt>
+        <dd>實務上會同時設定逾時、退避加 jitter、重試次數上限與熔斷器。重試只用在冪等的操作上；付款這類會產生副作用的請求要搭配冪等鍵，避免重試造成重複扣款。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

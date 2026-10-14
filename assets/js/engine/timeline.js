@@ -6,6 +6,7 @@ import { statsHtml, collectStats, setStat, summaryHtml, collectSummary, syncComp
 // 倒退或跳步時一樣只憑這一步的資料就畫得出完整狀態。
 //
 // system: { id, title, short?, rule, code?, processLabel, stats: [{ id, label }] }
+// legend: 圖例要列的 tone；可以寫 'net'（用預設說明）或 { tone: 'net', label: '主題自己的說法' }
 // 每一步每個面板的 view: {
 //   action, verdict, wires: { in, out },
 //   span, unit,                       時間軸總長與單位（'ms'、'秒'）
@@ -24,6 +25,11 @@ const TONE_LABEL = {
   job: '後端工作',
   abort: '請求被取消',
   err: '失敗 / 白做',
+  read: '讀取',
+  write: '寫入',
+  wait: '等待（鎖、確認）',
+  repl: '複寫中',
+  ok: '正常 / 成功',
 };
 
 export function createTimelineRender({ systems, compare, maxLanes, legend }) {
@@ -63,7 +69,7 @@ export function createTimelineRender({ systems, compare, maxLanes, legend }) {
 
   function legendHtml() {
     return `<div class="dg-legend" aria-label="圖例">
-      ${legend.filter((t) => TONE_LABEL[t]).map((t) => `<span><i class="tl-ldot" data-tone="${t}"></i>${TONE_LABEL[t]}</span>`).join('')}
+      ${legend.map((e) => (typeof e === 'string' ? { tone: e, label: TONE_LABEL[e] } : e)).filter((e) => e.label).map((e) => `<span><i class="tl-ldot" data-tone="${e.tone}"></i>${e.label}</span>`).join('')}
       <span><i class="tl-lcursor"></i>現在時間</span>
     </div>`;
   }
@@ -110,7 +116,7 @@ export function createTimelineRender({ systems, compare, maxLanes, legend }) {
   }
 
   const pct = (v, span) => `${Math.max(0, Math.min(100, (v / span) * 100))}%`;
-  const fmt = (v, unit) => (unit === 'ms' ? `${Math.round(v)}ms` : `${Math.round(v)} ${unit}`);
+  const fmt = (v, unit) => (unit === 'ms' ? `${Math.round(v)}ms` : `${Math.round(v * 10) / 10} ${unit}`);
 
   // 橫條與標記是依 id 建立的常駐元素：第一次出現時才建立，之後只改位置與寬度，所以會連續長出來
   function ensure(map, id, cls, html) {
