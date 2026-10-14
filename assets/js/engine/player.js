@@ -1,11 +1,13 @@
 // 建立共用播放器：把控制列 UI 整個注入 mount 節點，並依 steps 陣列驅動 render()。
-// steps: Array<{ id, caption, duration, data, chapter? }>
+// steps: Array<{ id, caption, detail?, duration, data, chapter? }>
+//   caption 是一兩句的白話說明；detail 是給想深入的人看的完整說明，按「看詳細說明」才展開
 // render: (step, stageElement, prevStep) => void
 //   prevStep 是時間軸上的前一步（第一步時為 undefined），讓各主題能標出「這一步變了什麼」。
 //   換步時播放器不對舞台做任何轉場（只在舞台外圍加章節橫幅、說明文字進場與倒數條）；要流暢的主題自己在 stage 裡保留常駐元素，每一步只更新狀態，
 //   讓同一個東西連續地移動、變色，而不是整塊重畫。
 // mount: HTMLElement，播放器 UI 會整個掛在這個節點底下
 import { reduceMotion } from './motion.js';
+import { annotate, wireTooltips } from '../glossary.js';
 
 export function initPlayer({ steps, render, mount }) {
   // 章節＝連續且 chapter 相同的一段步驟；沒標 chapter 的主題不顯示章節列
@@ -31,6 +33,7 @@ export function initPlayer({ steps, render, mount }) {
       <div class="player-head">
         <div class="caption-box">
           <p class="caption" id="caption" aria-live="polite"></p>
+          <p class="caption-detail" hidden></p>
           <div class="step-progress" aria-hidden="true"><span></span></div>
         </div>
         <div class="transport">
@@ -40,12 +43,19 @@ export function initPlayer({ steps, render, mount }) {
           <input type="range" class="scrubber" min="0" max="${steps.length - 1}" value="0" aria-label="時間軸">
           <span class="step-counter"></span>
         </div>
+        <div class="player-options">
+          <button type="button" class="opt-detail" aria-pressed="false">看詳細說明</button>
+          <button type="button" class="opt-code" aria-pressed="false" hidden>顯示程式碼</button>
+        </div>
       </div>
     </div>
   `;
 
   const stageEl = mount.querySelector('#stage');
   const captionEl = mount.querySelector('#caption');
+  const detailEl = mount.querySelector('.caption-detail');
+  const detailBtn = mount.querySelector('.opt-detail');
+  const codeBtn = mount.querySelector('.opt-code');
   const playPauseBtn = mount.querySelector('[data-action="play-pause"]');
   const prevBtn = mount.querySelector('[data-action="prev"]');
   const nextBtn = mount.querySelector('[data-action="next"]');
@@ -67,6 +77,9 @@ export function initPlayer({ steps, render, mount }) {
     render(step, stageEl, steps[currentIndex - 1]);
     if (captionEl.textContent !== step.caption) {
       captionEl.textContent = step.caption;
+      annotate(captionEl);
+      detailEl.textContent = step.detail || '';
+      annotate(detailEl);
       // 說明文字從下方滑入：每一步換句話時，讀者才注意到「現在講到下一件事了」
       if (!reduceMotion) {
         captionEl.animate(
@@ -181,6 +194,39 @@ export function initPlayer({ steps, render, mount }) {
     }
   });
 
+  // 「看詳細說明」：預設只顯示一兩句的白話說明，讀者想深入再展開；選擇記在 localStorage，換頁也保持
+  const DETAIL_KEY = 'architectvault-detail';
+  function setDetail(on) {
+    detailEl.hidden = !on;
+    detailBtn.setAttribute('aria-pressed', String(on));
+    detailBtn.textContent = on ? '收起詳細說明' : '看詳細說明';
+  }
+  let detailOn = false;
+  try { detailOn = localStorage.getItem(DETAIL_KEY) === '1'; } catch (e) { /* 無痕模式讀不到就用預設 */ }
+  detailBtn.hidden = !steps.some((s) => s.detail);
+  setDetail(detailOn);
+  detailBtn.addEventListener('click', () => {
+    detailOn = !detailOn;
+    setDetail(detailOn);
+    try { localStorage.setItem(DETAIL_KEY, detailOn ? '1' : '0'); } catch (e) { /* 存不了就只影響這一頁 */ }
+  });
+
+  // 程式碼片段預設收起：多數讀者不寫程式，面板上的白話規則已經說明了做法；想看實際寫法再打開
+  function setCode(on) {
+    stageEl.classList.toggle('show-code', on);
+    codeBtn.setAttribute('aria-pressed', String(on));
+    codeBtn.textContent = on ? '隱藏程式碼' : '顯示程式碼';
+    // 程式碼展開或收起會改變版面高度，各主題用絕對座標擺的元素要重新對位
+    window.dispatchEvent(new Event('resize'));
+  }
+  codeBtn.addEventListener('click', () => setCode(!stageEl.classList.contains('show-code')));
+
+  // 開頭說明與重點整理裡的術語，第一次出現時加上可點的解釋小卡
+  const seen = annotate(document.querySelector('.lesson-intro'));
+  annotate(document.querySelector('.lesson-summary'), seen);
+  wireTooltips();
+
   goTo(0);
+  codeBtn.hidden = !stageEl.querySelector('.snippet');
   play(); // 進頁面就開始播：讀者是來看動畫的，不該先找播放鍵
 }

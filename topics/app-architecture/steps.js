@@ -20,7 +20,7 @@ export const systems = [
   {
     id: 'layered',
     title: '三層式（Layered）',
-    rule: '展示層 → 業務邏輯層 → 資料存取層，每一層直接呼叫並依賴下一層。',
+    rule: '畫面層 → 業務邏輯層 → 資料層，每一層直接使用下一層的程式。',
     processLabel: '箭頭 = 原始碼裡誰 import 誰',
     cols: 3,
     rows: 4,
@@ -50,7 +50,7 @@ export const systems = [
   {
     id: 'hex',
     title: '六角架構（Ports & Adapters）',
-    rule: '業務核心定義 Port 介面，外面的 Adapter 實作或呼叫它；所有箭頭都指向核心。',
+    rule: '業務核心自己定「插座規格」（介面），資料庫、網頁入口都做成插頭接上來；所有箭頭都指向核心。',
     processLabel: '箭頭 = 原始碼裡誰 import 誰',
     cols: 3,
     rows: 4,
@@ -89,7 +89,7 @@ export const systems = [
     id: 'clean',
     title: 'Clean Architecture',
     short: 'Clean',
-    rule: '同心圓：Entity 在最內圈，Use Case 包著它，外圈的轉接層與框架只能往內依賴。',
+    rule: '像洋蔥一圈一圈：最內圈是業務規則，外圈的資料庫、框架只能往內依賴。',
     processLabel: '箭頭 = 原始碼裡誰 import 誰',
     cols: 3, // main 放左下角：它接 Gateway 的箭頭才不會從 Entity 後面穿過、被誤看成 Entity 的依賴
     rows: 4,
@@ -288,3 +288,22 @@ steps.push({
   caption: '三層式最簡單，但業務邏輯被資料庫綁住。六角架構與 Clean Architecture 用介面把依賴反轉，讓核心不認識外面的世界，代價是多寫介面與組裝程式。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  intro: '三種寫法都在做同一個「下單」功能。箭頭 A → B 表示 A 的程式直接用到 B：B 一改，A 可能就要跟著改。',
+  'core-deps': `看綠色的「業務邏輯」往外指的箭頭：三層式一路牽到資料庫（${coreDeps[0].length} 個），另外兩種是 0 個。`,
+  'flow-0': '一筆下單進來，先到最外層的入口。',
+  'flow-1': '入口把下單交給業務邏輯，檢查庫存、算金額。三邊做的事一樣。',
+  'flow-2': '要存訂單了。三層式直接呼叫資料庫程式；另外兩種呼叫的是自己定的「插座規格」，由外面的轉接程式接手。',
+  'flow-3': '訂單存進資料庫。實際執行的路線三邊差不多，差別在程式碼「誰依賴誰」。',
+  'swap-plan': '新需求：資料庫要從 MySQL 換成 MongoDB。看看哪些原本的程式要跟著改。',
+  'swap-apply': `三層式連業務邏輯（${names(systems[0], swapDiff[0].changed)}）都要改；另外兩種只改負責組裝的 main，業務邏輯一行都不用動。`,
+  'test-plan': '想替業務邏輯寫自動測試，最好不用真的開資料庫，測試才會又快又穩。',
+  'test-run': '三層式的業務邏輯綁著資料庫，測試得接上真的資料庫；另外兩種接一個假的資料庫就能測。',
+  compare: '三層式最簡單，但業務邏輯被資料庫綁住；另外兩種用「插座規格」讓核心不依賴外面，代價是多寫一些程式。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

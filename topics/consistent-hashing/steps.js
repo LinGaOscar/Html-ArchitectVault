@@ -29,13 +29,13 @@ const DEFS = {
   mod: {
     kind: 'mod',
     title: '取餘數',
-    rule: '桶號 = hash(key) % N，N 是節點數。',
+    rule: '放哪一台 = 資料的號碼 ÷ 機器數，取餘數。',
     ownerOf: (nodes, hash) => nodes[hash % nodes.length],
   },
   ring: {
     kind: 'ring',
     title: 'Consistent Hashing',
-    rule: 'key 放在環上，順時針第一個節點負責它。',
+    rule: '資料放在圓環上，順時針遇到的第一台機器負責它。',
     ownerOf: ringOwner,
   },
 };
@@ -271,3 +271,25 @@ export const slotsPerNode = steps.reduce((max, s) => {
 }, 0);
 
 export { steps };
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const keyOf = Object.fromEntries(keys.map((k) => [k.id, k]));
+function plain(s) {
+  const n = initialNodes.length;
+  if (s.id === 'intro') return `${total} 筆資料要分散放到 ${n} 台機器上。左邊用「號碼除以機器數取餘數」決定，右邊用一個圓環決定。`;
+  if (s.id === 'compare') return `機器增減時，取餘數搬了 ${modEvents.map((e) => e.moved).join('、')} 筆；圓環只搬 ${ringEvents.map((e) => e.moved).join('、')} 筆。`;
+  if (s.id === 'add-announce') return `加入一台新機器 ${ADDED}。左邊機器數從 ${n} 變 ${n + 1}，餘數幾乎全變；右邊只影響 ${ADDED} 旁邊那一段。`;
+  if (s.id === 'remove-announce') return `${REMOVED} 下線。左邊機器數又變了，大部分資料要換位置；右邊只有 ${REMOVED} 手上的資料要交給下一台。`;
+  if (s.id.endsWith('-move')) {
+    const [m, r] = s.data.panels.map((p) => p.moveCount);
+    return `搬家：左邊 ${m} 筆要換機器，右邊只要搬 ${r} 筆。`;
+  }
+  if (s.id.startsWith('batch')) return '剩下的資料一次放好，每一筆都照同樣的規則算出要放哪一台。';
+  const k = keyOf[s.id.split('-')[0]];
+  if (s.id.endsWith('-calc')) return `${k.name} 先算出號碼 ${k.hash}。左邊：${k.hash} ÷ ${n} 的餘數是 ${k.hash % n}；右邊：放到環上 ${k.hash} 的位置。`;
+  const [m, r] = s.data.panels.map((p) => p.target);
+  return `${k.name} 左邊放進 ${m}，右邊順時針找到 ${r}。${m === r ? '' : '兩邊放的位置不一樣。'}`;
+}
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

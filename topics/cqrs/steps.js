@@ -46,7 +46,7 @@ export const systems = [
   {
     id: 'crud',
     title: '傳統 CRUD',
-    rule: '讀和寫用同一個模型、同一組正規化的資料表；寫進去的下一刻就讀得到。',
+    rule: '讀和寫用同一組資料表；寫進去的下一刻就讀得到。',
     processLabel: '左邊寫入、右邊查詢',
     cols: 3,
     rows: 3,
@@ -74,7 +74,7 @@ export const systems = [
   {
     id: 'cqrs',
     title: 'CQRS',
-    rule: '寫入（Command）和查詢（Query）拆成兩個模型、兩個資料庫；寫入後由 Projector 非同步更新讀取用的 view。',
+    rule: '寫入和查詢拆成兩套資料；寫完之後，由同步程式去更新查詢用的那一套。',
     processLabel: '左邊寫入、右邊查詢',
     cols: 3,
     rows: 3,
@@ -109,7 +109,7 @@ export const systems = [
     id: 'es',
     title: 'CQRS + Event Sourcing',
     short: 'CQRS+ES',
-    rule: '寫入端不存目前狀態，只把發生過的事件依序追加到 Event Store；讀取用的 view 全部由事件投影出來。',
+    rule: '寫入時不存「現在的樣子」，只把發生過的事依序記在記事本上；查詢用的資料全部由這些事件整理出來。',
     processLabel: '左邊寫入、右邊查詢',
     cols: 3,
     rows: 3,
@@ -324,3 +324,22 @@ steps.push({
   caption: 'CQRS 讓讀和寫各自用最適合的模型，代價是讀取端會晚一步。Event Sourcing 再進一步把「發生過的事」當成唯一的真相，任何時候都能重建出新的 view。兩者都會增加複雜度，只在真的需要時才用。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  intro: `三種做法處理同一個訂單系統，之前已經發生過 ${history.length} 件事：下單、改價、取消。`,
+  'write-0': `新訂單 o4 進來，金額 ${NEW_ORDER.amount}。`,
+  'write-1': '檢查規則（庫存、金額），三邊都一樣。',
+  'write-2': 'CRUD 和 CQRS 在表格裡新增一筆訂單；Event Sourcing 不改任何資料，只在記事本最後加一行「o4 已下單」。',
+  'read-stale': '下完單馬上去看「我的訂單」。CRUD 看得到；CQRS 的查詢用資料還沒同步，看不到新訂單。',
+  sync: '同步程式把新訂單補進查詢用的資料。幾秒內，CQRS 也看得到了。',
+  list: `後台要看訂單列表。CRUD 每次都要把 ${LIST_TABLES.length} 張表對起來；CQRS 的查詢資料早就整理好，直接讀。`,
+  scale: '查詢量是寫入的 100 倍。CQRS 可以只加開查詢那一邊；CRUD 讀寫綁在一起，只能整組加開。',
+  'report-plan': '財務要一張新報表：每筆訂單的原價、改價和取消紀錄。',
+  'report-build': `CRUD 和 CQRS 只存「現在的樣子」，舊的改價、取消紀錄找不回來；Event Sourcing 重播 ${allEvents.length} 件事，全部都在。`,
+  compare: 'CQRS 讓讀和寫各用最適合的方式，代價是查詢會晚一步；Event Sourcing 把發生過的事全部留下，任何報表都能重建。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

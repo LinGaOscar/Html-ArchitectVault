@@ -20,21 +20,21 @@ const DETECT = 300; // 發現主庫故障並把從庫升級為主庫所需時間
 export const systems = [
   {
     id: 'sync', title: '同步複寫', short: '同步',
-    rule: '主庫要等從庫確認收到，才回覆「寫入成功」。回覆成功的資料，一定至少存在兩台。',
+    rule: '主資料庫要等備份資料庫回覆「收到了」，才跟使用者說成功。說過成功的資料，一定至少存在兩台。',
     processLabel: '時間軸：寫入、複寫、讀取',
     code: '<i>-- PostgreSQL</i>\nsynchronous_commit = <b>on</b>\nsynchronous_standby_names = \'replica1\'',
     mode: 'sync',
   },
   {
     id: 'async', title: '非同步複寫', short: '非同步',
-    rule: '主庫自己寫完就回覆成功，變更稍後才送到從庫。寫入最快，但從庫會落後一小段時間。',
+    rule: '主資料庫自己寫完就說成功，稍後才複製到備份資料庫。最快，但備份會落後一點點。',
     processLabel: '時間軸：寫入、複寫、讀取',
     code: '<i>-- PostgreSQL / MySQL 預設</i>\nsynchronous_commit = <b>local</b>\n<i>-- 從庫用 WAL / binlog 追上</i>',
     mode: 'async',
   },
   {
     id: 'multi', title: '多主複寫', short: '多主',
-    rule: '每個區域各有一台主庫，都能接受寫入，彼此非同步交換變更。寫入就近、最快，但兩邊可能同時改到同一筆。',
+    rule: '每個地區各有一台主資料庫，都能寫，彼此再互相同步。就近寫入最快，但兩邊可能同時改到同一筆。',
     processLabel: '時間軸：寫入、複寫、讀取',
     code: '<i>-- 例：跨區域資料庫、CouchDB、</i>\n<i>-- MySQL Group Replication（多主模式）</i>\nconflict_resolution = <b>last_write_wins</b>',
     mode: 'multi',
@@ -260,3 +260,23 @@ steps.push({
   caption: '同步複寫用寫入速度換資料安全；非同步複寫用短暫的落後換速度；多主複寫用衝突處理換就近寫入與高可用。實務上常折衷：只等「其中一台」從庫確認（半同步），或讀取自己剛寫的資料時改讀主庫。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  'read-0': '使用者 A 改了暱稱，另一個人馬上從另一台資料庫讀。',
+  'read-1': `非同步和多主寫完 ${raw[1].ack}ms 就說「成功」；同步還在等備份資料庫回覆。`,
+  'read-2': `同步要 ${raw[0].ack}ms 才說成功，但另一台已經有新暱稱；另外兩種雖然快，另一台讀到的卻是舊暱稱。`,
+  'slow-0': `備份資料庫那邊網路變慢，要 ${SLOW_ACK}ms 才回應。`,
+  'slow-1': `同步每次寫入都得等它，變成 ${slow[0].ack}ms；另外兩種不受影響，照樣 ${slow[1].ack}ms。`,
+  'crash-0': `連續寫入 W1、W2，主資料庫在第 ${CRASH}ms 突然壞掉，硬碟也毀了。`,
+  'crash-1': '非同步和多主早就對 W1、W2 都說了「成功」，但 W2 還沒複製出去。同步的 W2 還沒確認，使用者收到的是失敗。',
+  'crash-2': '同步沒有弄丟任何說過「成功」的資料；非同步的 W2 不見了。多主不用切換、另一台照常可寫，但 W2 卡在壞掉的那台。',
+  'conflict-0': '兩個地區的編輯，幾乎同時修改同一篇文章的標題。',
+  'conflict-1': `多主兩邊各自寫進本地，${conflicts[2].remote}ms 就說成功，但兩地看到的標題不一樣。單一主資料庫則依序處理。`,
+  'conflict-2': `多主互相同步時發現衝突，較晚的 B 版留下，A 的修改被默默丟掉。單一主資料庫不會衝突，但遠方的編輯要等 ${conflicts[1].remote}ms 以上。`,
+  compare: '同步用速度換「不掉資料」；非同步用短暫的落後換速度；多主用處理衝突換「就近寫、不停機」。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

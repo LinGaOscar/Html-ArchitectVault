@@ -22,21 +22,21 @@ const SAMPLES = [600, 900]; // 畫在時間軸上的兩個代表性請求（都�
 export const systems = [
   {
     id: 'naive', title: '立即重試', short: '立即重試',
-    rule: '失敗就馬上再打一次，直到成功或逾時放棄。最直覺，也是很多 HTTP 用戶端預設的行為。',
+    rule: '失敗就馬上再試，直到成功或超過時間放棄。最直覺的做法。',
     processLabel: '時間軸：下游狀態與兩個代表性請求',
     code: 'for (;;) {\n  try { return await pay(order) }\n  catch { <b>continue</b> } <i>// 馬上重試</i>\n}',
     policy: 'naive',
   },
   {
     id: 'backoff', title: '指數退避＋jitter', short: '退避',
-    rule: '每次失敗後的等待時間加倍（0.2、0.4、0.8…最多 3.2 秒），並在 0 到上限之間隨機挑，讓所有請求錯開時間重試。',
+    rule: '每次失敗後等更久才再試（最多 3.2 秒），而且每個人等的時間隨機，讓大家錯開。',
     processLabel: '時間軸：下游狀態與兩個代表性請求',
     code: 'for (let i = 0; ; i++) {\n  try { return await pay(order) }\n  catch { await sleep(<b>random(0, min(3200, 200 * 2 ** i))</b>) }\n}',
     policy: 'backoff',
   },
   {
     id: 'breaker', title: '熔斷器＋退避', short: '熔斷器',
-    rule: '呼叫端前面加一個熔斷器：失敗太多就斷開，斷開期間直接回失敗、不打下游；1 秒後放 5 個請求試探，成功才恢復放行。',
+    rule: '像保險絲：失敗太多就先斷開，這段時間直接回失敗、不打過去；1 秒後放幾個請求試探，成功才恢復。',
     processLabel: '時間軸：下游狀態與兩個代表性請求',
     code: 'if (<b>breaker.isOpen()</b>) throw new Error("快速失敗")\ntry { const r = await pay(order); breaker.success(); return r }\ncatch (e) { <b>breaker.failure()</b>; throw e }\n<i>// 外層同樣用退避重試</i>',
     policy: 'breaker',
@@ -226,3 +226,18 @@ steps.push({
   caption: '重試本身沒有錯，錯在所有人同一時間重試。退避加 jitter 把重試錯開，熔斷器在對方明顯掛掉時乾脆不打，讓它有機會恢復。兩者通常一起用，再加上逾時與重試次數上限。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  b0: `${N} 筆付款請求送往付款服務。它每 0.1 秒最多處理 ${CAP} 筆，目前一切正常。`,
+  b1: `第 ${OUT_START / 1000} 秒付款服務壞了。立即重試每 0.1 秒就再打一次；退避越等越久；熔斷器發現失敗太多，乾脆先不打。`,
+  b2: `故障期間打到付款服務的請求：立即重試 ${naive.hits} 筆、退避 ${backoff.hits} 筆、熔斷器只有 ${breaker.hits} 筆。`,
+  b3: `第 ${OUT_END / 1000} 秒修好了。立即重試的請求一起湧上來，一瞬間 ${naive.peak} 筆，遠超過容量 ${CAP}，又把它壓垮。`,
+  b4: '退避和熔斷器的請求陸續成功；立即重試的請求還在一起撞牆。',
+  b5: `立即重試最後只有 ${naive.ok} 筆成功；退避和熔斷器都是 ${backoff.ok} 筆全部成功。`,
+  compare: '重試沒有錯，錯在大家同時重試。退避讓重試錯開，熔斷器在對方明顯壞掉時先停手，讓它有機會恢復。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

@@ -38,7 +38,7 @@ export const systems = [
   {
     id: 'mvc',
     title: 'MVC',
-    rule: 'Controller 接收輸入、改 Model；View 自己觀察 Model，Model 一變就各自重畫。',
+    rule: 'Controller 接收輸入、改資料；畫面自己盯著資料，資料一變就自己重畫。',
     processLabel: '箭頭 = 誰依賴誰',
     cols: 3,
     rows: 3,
@@ -65,7 +65,7 @@ export const systems = [
   {
     id: 'mvp',
     title: 'MVP',
-    rule: 'View 很被動，只把事件交給 Presenter；Presenter 改 Model 後，一個一個呼叫 View 介面去更新畫面。',
+    rule: '畫面很被動，只把輸入交給 Presenter；Presenter 改完資料，再一個一個去更新畫面。',
     processLabel: '箭頭 = 誰依賴誰',
     cols: 3,
     rows: 3,
@@ -93,7 +93,7 @@ export const systems = [
   {
     id: 'mvvm',
     title: 'MVVM',
-    rule: 'View 宣告綁定 ViewModel 的屬性；ViewModel 改值，綁定機制自動同步所有畫面，ViewModel 不認識任何 View。',
+    rule: '畫面宣告「我要顯示哪個值」，值一改就自動同步到所有畫面；ViewModel 不需要認識任何畫面。',
     processLabel: '箭頭 = 誰依賴誰',
     cols: 3,
     rows: 3,
@@ -297,3 +297,22 @@ steps.push({
   caption: '三種模式都在把畫面和邏輯分開，差別在誰負責把資料送回畫面。MVC 讓 View 自己看 Model，MVP 讓 Presenter 動手，MVVM 交給綁定機制。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  intro: `三種寫法做同一個購物車畫面：單價 ${money(PRICE)}、數量 ${QTY_BEFORE}。上排是畫面元件，下面是資料，差別在中間那一層。`,
+  'flow-0': `使用者把數量從 ${QTY_BEFORE} 改成 ${QTY_AFTER}。`,
+  'flow-1': 'MVC 交給 Controller、MVP 交給 Presenter；MVVM 靠自動同步（資料綁定），新數量直接進 ViewModel。',
+  'flow-2': `MVVM 的總價已經自動算好，畫面也自動更新成 ${money(QTY_AFTER * PRICE)}；另外兩種才剛把新數量存進資料。`,
+  'flow-3': 'MVC 的資料通知畫面「我變了」，畫面自己來讀；MVP 的 Presenter 拿到結果，準備去改畫面。',
+  'flow-4': 'MVP 的 Presenter 一個一個去改畫面：畫面上有幾處要更新，它就要寫幾行。',
+  'add-plan': '新需求：結帳按鈕上也要顯示總價。',
+  'add-apply': `MVC 和 MVVM 只要新增按鈕本身；MVP 還得改 ${names(systems[1], addDiff[1].changed)}，多寫一次更新畫面的程式。`,
+  'test-plan': '想測試「數量 × 單價 = 總價」這段邏輯，最好不用真的開出畫面。',
+  'test-run': `MVC 要真的畫面才能測；MVP 要準備 ${needs[1].mocks.length} 個假畫面；MVVM 什麼都不用，直接測。`,
+  compare: '三種都在把畫面和邏輯分開，差別在「資料改了之後，由誰送回畫面」。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

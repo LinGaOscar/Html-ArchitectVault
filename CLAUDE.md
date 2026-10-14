@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 專案性質
 
-給系統架構師看的互動動畫教學站。純靜態網站：HTML + CSS + 原生 ES modules，沒有建置工具、沒有套件管理、沒有測試框架、不使用任何外部函式庫或 CDN。以 GitHub Pages 發佈（https://lingaoscar.github.io/Html-ArchitectVault/），repo 根目錄就是網站根目錄，所以所有路徑都必須是相對路徑。
+給入門與跨領域讀者（程式底子不深的人）看的系統設計互動動畫教學站。純靜態網站：HTML + CSS + 原生 ES modules，沒有建置工具、沒有套件管理、沒有測試框架、不使用任何外部函式庫或 CDN。以 GitHub Pages 發佈（https://lingaoscar.github.io/Html-ArchitectVault/），repo 根目錄就是網站根目錄，所以所有路徑都必須是相對路徑。
 
 ## 常用指令
 
@@ -77,6 +77,15 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - 要比較的方案放在並排的面板裡同步前進（同一拍一起動），不是依序播放；最後一個章節是對照表。
 - `index.html` 的結構是 `.lesson-intro`（要解決的問題＋看動畫時留意什麼）→ `#player-root` → `.lesson-summary`（重點整理）。重點整理裡每個方案在說明之後接一段 `<dd class="lesson-why"><b>為什麼這樣設計</b>…</dd>`，寫這個方案當初要解決什麼問題，讀者換個情境才判斷得出該不該用。
 - 範例資料是刻意設計來凸顯差異的，而且各種計數、歸屬都由程式模擬算出，不手寫。
+
+### 給入門讀者的輔助
+
+- `index.html` 的 `.lesson-intro` 開頭是 `.lesson-plain` 方塊：`<p><b>生活情境</b>…</p>`、`<p><b>打個比方</b>…</p>`、`<p><b>這頁比較</b>…</p>`，需要先懂別的主題時再加 `<p class="lesson-prereq">建議先看：<a href="../x/index.html">…</a></p>`。
+- 步驟說明分兩層：`caption` 是一兩句白話（約 50 字內，不用術語），`detail` 是完整技術說明。各主題 `steps.js` 最後用 `plain(s)` 產生白話版，再 `s.detail = s.caption; s.caption = plain(s)`。播放器的「看詳細說明」開關決定是否顯示 `detail`（存在 localStorage）。
+- 術語解釋集中在 `assets/js/glossary.js` 的 `TERMS`（同義詞放 `ALIAS`）。播放器會自動在說明文字、`.lesson-intro`、`.lesson-summary` 裡標出每個詞第一次出現的位置，點一下或滑過就顯示解釋。新主題用到新術語就加進 `TERMS`，解釋要用生活語言寫。
+- 舞台上的程式碼片段加 `.snippet` class，預設隱藏，播放器偵測到才出現「顯示程式碼」開關。
+- 舞台上的文字（判斷結果、標籤）用白話，英文術語只在名稱本身就是英文時保留（Kafka、Cache-Aside）。
+- 首頁卡片用 `<span class="level is-basic">入門</span>` 或 `is-advanced` 標難度；`.learning-path` 列出建議的閱讀順序，只放入門主題。
 
 ### 樣式分層
 

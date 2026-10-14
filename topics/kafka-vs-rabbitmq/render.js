@@ -197,7 +197,7 @@ function updatePanel(panel, d, prevD, animate) {
       lane.meta.textContent = '尚未建立';
     } else if (isCopy) {
       const an = d.offsets.an ? ` · 分析 ${d.offsets.an[l.id]}` : '';
-      lane.meta.textContent = `${ids.length} 則 · offset 訂單 ${d.offsets.orders[l.id]}${an}`;
+      lane.meta.textContent = `${ids.length} 則 · 書籤：訂單 ${d.offsets.orders[l.id]}${an}`;
     } else {
       lane.meta.textContent = `${ids.length} 則待處理`;
     }

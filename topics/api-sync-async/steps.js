@@ -21,7 +21,7 @@ export const systems = [
   {
     id: 'sync',
     title: '同步呼叫',
-    rule: '用同步 XHR 一支一支呼叫，回應回來之前，JavaScript 停在那一行，瀏覽器也無法重畫畫面或處理點擊。',
+    rule: '發出請求後原地等回應。等待期間整個畫面卡住，點擊、打字都沒反應。',
     processLabel: '時間軸：誰在等、誰被卡住',
     code: 'const xhr = new XMLHttpRequest()\nxhr.open("GET", "/api/user", <b>false</b>) <i>// 同步</i>\nxhr.send()  <i>// 卡在這裡直到回應</i>\nrender(JSON.parse(xhr.responseText))',
     sequential: true,
@@ -31,9 +31,9 @@ export const systems = [
   },
   {
     id: 'seq',
-    title: '非同步：逐一 await',
-    short: '逐一 await',
-    rule: '用 fetch + await，等待時主執行緒是空的，畫面照常回應。但寫成一行一行 await，彼此無關的請求也會排隊。',
+    title: '非同步：逐一等待',
+    short: '逐一等待',
+    rule: '等待時畫面照常可用，但一次只等一個請求，彼此沒關係的請求也得排隊。',
     processLabel: '時間軸：誰在等、誰被卡住',
     code: 'const user = await fetch("/api/user")\nconst orders = await fetch("/api/orders")\nconst rec = await fetch("/api/rec")\n<i>// 一支回來才發下一支</i>',
     sequential: true,
@@ -45,7 +45,7 @@ export const systems = [
     id: 'par',
     title: '非同步：並行＋防護',
     short: '並行＋防護',
-    rule: '彼此無關的請求一起發，用 Promise.allSettled 等全部結束，一支失敗不影響其他支；被新輸入取代的請求用 AbortController 取消。',
+    rule: '沒關係的請求一起發；一份出錯不影響其他份；新的搜尋來了，就取消還沒回來的舊搜尋。',
     processLabel: '時間軸：誰在等、誰被卡住',
     code: '<b>await Promise.allSettled</b>([\n  fetch("/api/user"), fetch("/api/orders"),\n  fetch("/api/rec"),\n])\n<i>// 搜尋：新輸入來了就取消舊請求</i>\n<b>controller.abort()</b>',
     sequential: false,
@@ -210,8 +210,8 @@ const loadBeats = [
   { t: 0, d: 4200, cap: '三個面板載入同一個頁面，要打三支 API：使用者 300ms、訂單 800ms、推薦 500ms。上排是主執行緒，它被卡住時，畫面不能重畫、點擊也不會被處理。' },
   { t: 320, d: 3600, cap: '使用者 API 回來了。同步呼叫這段時間主執行緒一直卡在 xhr.send()（紅色斜紋）；兩種非同步寫法發完請求就把主執行緒讓出來了。並行的寫法三支請求同時在跑。' },
   { t: CLICK_AT + 40, d: 4400, cap: `第 ${CLICK_AT}ms 使用者點了一下「收藏」。同步呼叫的主執行緒還卡著，點擊進不來；兩種非同步寫法立刻處理。` },
-  { t: 860, d: 4000, cap: '並行的寫法三支都回來了，畫面已經完整顯示。逐一 await 的寫法還在等訂單，推薦根本還沒發出去：三支互不相關，卻排隊等。' },
-  { t: 1700, d: 5600, cap: `同步呼叫與逐一 await 都到 ${load[0].allDone}ms 才顯示完整畫面，並行只要 ${load[2].allDone}ms。同步呼叫還讓畫面凍結 ${load[0].frozen}ms，那次點擊晚了 ${load[0].clickDelay}ms 才反應，使用者會以為當機。` },
+  { t: 860, d: 4000, cap: '並行的寫法三支都回來了，畫面已經完整顯示。逐一等待的寫法還在等訂單，推薦根本還沒發出去：三支互不相關，卻排隊等。' },
+  { t: 1700, d: 5600, cap: `同步呼叫與逐一等待都到 ${load[0].allDone}ms 才顯示完整畫面，並行只要 ${load[2].allDone}ms。同步呼叫還讓畫面凍結 ${load[0].frozen}ms，那次點擊晚了 ${load[0].clickDelay}ms 才反應，使用者會以為當機。` },
 ];
 loadBeats.forEach((b, k) => {
   systems.forEach((sys, i) => {
@@ -232,7 +232,7 @@ const C2 = '一支失敗';
 const fail = systems.map(failScenario);
 const failBeats = [
   { t: 0, d: 3600, cap: '再載入一次，這次訂單 API 會在 800ms 後回 500 錯誤。' },
-  { t: 560, d: 3600, cap: '並行的寫法已經拿到使用者和推薦；逐一 await 的寫法還在等訂單。' },
+  { t: 560, d: 3600, cap: '並行的寫法已經拿到使用者和推薦；逐一等待的寫法還在等訂單。' },
   { t: 1200, d: 6200, cap: `逐一呼叫的兩種寫法用一個 try 包住三行，訂單丟出例外就直接跳到 catch，推薦 API 根本沒發出去，只拿到 ${fail[1].got} 支。並行＋allSettled 的寫法三支各自結算，拿到 ${fail[2].got} 支，只有訂單區塊顯示錯誤。注意：若用 Promise.all，一支失敗整個 Promise 就失敗，成功的結果也拿不到。` },
 ];
 failBeats.forEach((b, k) => {
@@ -251,8 +251,8 @@ const C3 = '回應順序亂掉';
 const search = systems.map(searchScenario);
 const searchBeats = [
   { t: 0, d: 4200, cap: '使用者在搜尋框依序打出 k、ka、kaf，每打一個字就發一次搜尋。剛好「k」的結果最多，伺服器回得最慢。' },
-  { t: 520, d: 4400, cap: '逐一 await 的寫法每個請求各自等、回來就畫：「ka」先回來先畫。並行＋防護的寫法每打一個新字，就取消上一個還沒回來的請求。同步呼叫還卡在第一個字，後面打的字連輸入框都還沒出現。' },
-  { t: 1100, d: 6000, cap: `「k」最慢，${search[1].final.at}ms 才回來。逐一 await 的寫法照樣把它畫上去，舊結果蓋掉了正確的「kaf」，這就是 race condition。並行＋防護的寫法早就取消了「k」，畫面停在正確的「kaf」。` },
+  { t: 520, d: 4400, cap: '逐一等待的寫法每個請求各自等、回來就畫：「ka」先回來先畫。並行＋防護的寫法每打一個新字，就取消上一個還沒回來的請求。同步呼叫還卡在第一個字，後面打的字連輸入框都還沒出現。' },
+  { t: 1100, d: 6000, cap: `「k」最慢，${search[1].final.at}ms 才回來。逐一等待的寫法照樣把它畫上去，舊結果蓋掉了正確的「kaf」，這就是 race condition。並行＋防護的寫法早就取消了「k」，畫面停在正確的「kaf」。` },
   { t: 1800, d: 5200, cap: `同步呼叫不會亂序，因為一次只做一件事，但代價是整段輸入期間凍結了 ${search[0].frozen}ms，使用者打字完全沒反應。` },
 ];
 searchBeats.forEach((b, k) => {
@@ -288,3 +288,24 @@ steps.push({
   caption: '非同步讓主執行緒在等網路時能做別的事，畫面才不會凍結。但「非同步」不等於「快」：彼此無關的請求要並行發，被取代的請求要取消，失敗要各自處理。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  'load-0': '同一個頁面要向後端要三份資料。最上面一列是瀏覽器的「主執行緒」，它被卡住，畫面就凍住。',
+  'load-1': '同步的寫法在等資料時，整個畫面卡住（紅色斜紋）；兩種非同步寫法發出請求後，畫面照常可用。',
+  'load-2': `使用者在第 ${CLICK_AT}ms 點了一下按鈕。同步的寫法卡著不動；非同步的立刻有反應。`,
+  'load-3': '「並行」的寫法三份資料同時要，已經全部到齊；「逐一等待」的寫法還在排隊。',
+  'load-4': `畫面完整出現：同步和逐一等待要 ${load[0].allDone}ms，並行只要 ${load[2].allDone}ms。同步的寫法還讓畫面凍住了 ${load[0].frozen}ms。`,
+  'fail-0': '再載入一次，這次「訂單」那一份資料會出錯。',
+  'fail-1': '並行的寫法已經拿到另外兩份；逐一等待的寫法還卡在訂單。',
+  'fail-2': `訂單出錯後，逐一等待的寫法直接放棄後面的，只拿到 ${fail[1].got} 份；並行的寫法各自處理，拿到 ${fail[2].got} 份。`,
+  'search-0': '使用者在搜尋框依序打 k、ka、kaf，每打一個字就搜尋一次。偏偏「k」的結果最慢回來。',
+  'search-1': '「並行＋防護」每打一個新字，就取消上一次搜尋；同步的寫法卡住了，打的字都還沒出現在畫面上。',
+  'search-2': '最慢的「k」最後才回來。逐一等待的寫法照樣把它畫上去，蓋掉了正確的「kaf」結果。',
+  'search-3': `同步的寫法結果正確，但整段打字時間畫面凍住了 ${search[0].frozen}ms。`,
+  compare: '非同步讓畫面不會凍住，但不等於快：沒關係的請求要一起發，被取代的請求要取消，出錯要各自處理。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

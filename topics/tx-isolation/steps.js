@@ -12,7 +12,7 @@ export const systems = [
     id: 'rc',
     title: 'Read Committed',
     short: 'RC',
-    rule: '每一次讀取都讀「當下已提交」的最新值。別的交易一提交，下一次讀就看得到。',
+    rule: '每次讀都讀「當下已存檔」的最新值，別人一存檔，下一次讀就看得到。',
     processLabel: '時間軸：兩筆交易同時在跑',
     code: 'SET TRANSACTION ISOLATION LEVEL\n  <b>READ COMMITTED</b>;\n<i>-- 每個 SELECT 各自取最新已提交的值</i>',
     level: 'rc',
@@ -21,7 +21,7 @@ export const systems = [
     id: 'rr',
     title: 'Repeatable Read',
     short: 'RR',
-    rule: '交易開始時拍一張快照，整筆交易都讀這張快照。同一筆資料讀幾次都一樣（快照隔離）。',
+    rule: '交易一開始先把資料拍照存證，整筆交易都看這張照片，同一筆資料讀幾次都一樣。',
     processLabel: '時間軸：兩筆交易同時在跑',
     code: 'SET TRANSACTION ISOLATION LEVEL\n  <b>REPEATABLE READ</b>;\n<i>-- 整筆交易讀同一張快照</i>',
     level: 'rr',
@@ -30,7 +30,7 @@ export const systems = [
     id: 'ser',
     title: 'Serializable',
     short: 'Serializable',
-    rule: '保證結果跟「一筆接一筆依序執行」一樣。偵測到並行會造成矛盾時，中止其中一筆，讓它重來。',
+    rule: '保證結果跟「一筆一筆排隊執行」一樣；發現同時進行會出矛盾，就讓其中一筆失敗重來。',
     processLabel: '時間軸：兩筆交易同時在跑',
     code: 'SET TRANSACTION ISOLATION LEVEL\n  <b>SERIALIZABLE</b>;\n<i>-- 衝突時提交失敗，應用程式要重試</i>',
     level: 'ser',
@@ -261,3 +261,22 @@ steps.push({
   caption: '隔離等級越高，擋得住的異常越多，但並行能力越差、失敗重試越多。多數系統用預設的 Read Committed，再針對真正需要的那幾筆交易提高等級，或用 SELECT … FOR UPDATE 明確鎖住要檢查的資料。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  'nrr-0': `帳戶 A 有 ${ACCOUNT} 元。T1 在做月報，會讀 A 兩次；T2 是一筆轉帳，會從 A 轉出 ${TRANSFER}。三邊只差「隔離等級」的設定。`,
+  'nrr-1': `T1 第一次讀 A，三邊都讀到 ${rcReads[0]}。`,
+  'nrr-2': `T1 還在進行中，T2 已經轉完帳、正式存檔：A 變成 ${ACCOUNT - TRANSFER}。`,
+  'nrr-3': `T1 第二次讀 A。Read Committed 讀到最新的 ${rcReads[1]}，同一份月報前後數字對不起來；另外兩種還是 ${rrReads[1]}。`,
+  'skew-0': '規定：任何時候至少要有 1 位醫師值班。Alice 和 Bob 幾乎同時請假，系統都先檢查「現在至少有 2 人值班嗎」。',
+  'skew-1': '兩邊都看到「2 人值班」，檢查都通過。',
+  'skew-2': 'Alice 和 Bob 都被設為下班。兩人改的是不同的資料，彼此沒有撞到。',
+  'skew-3': 'Alice 的請假先存檔，值班表剩 Bob 一人。',
+  'skew-4': 'Bob 的請假也要存檔。前兩種都讓它成功，變成沒人值班；Serializable 發現矛盾，讓它失敗。',
+  'skew-5': `Bob 的請假重試一次，這次看到只剩 1 人，系統拒絕請假。Serializable 最後還有 ${skew[2].finalOnCall} 人值班。`,
+  compare: '設定越嚴格，擋得住的問題越多，但同時能處理的交易越少、失敗重來的越多。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

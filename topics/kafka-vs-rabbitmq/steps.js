@@ -32,20 +32,20 @@ export const systems = [
     id: 'rabbit',
     mode: 'move', // 訊息本身被推給 consumer，離開 broker
     title: 'RabbitMQ',
-    rule: '訊息放進 queue 推給 consumer，ack 之後就從 queue 刪除。',
+    rule: '訊息排進佇列，交給處理的人；處理完回報「收到了」，訊息就刪除。',
     processLabel: 'exchange 把訊息路由到 queue',
-    gateName: 'exchange',
-    lanes: [{ id: 'orders', name: 'queue: orders' }, { id: 'an', name: 'queue: analytics' }],
+    gateName: '分信員',
+    lanes: [{ id: 'orders', name: '佇列：訂單' }, { id: 'an', name: '佇列：分析' }],
     code: 'channel.publish("orders-ex", key, msg)\n<i>// consumer</i>\nchannel.consume("orders", (m) => {\n  handle(m)\n  <b>channel.ack(m)</b>   <i>// ack 後刪除</i>\n})',
   },
   {
     id: 'kafka',
     mode: 'copy', // 訊息留在 log，consumer 讀的是副本
     title: 'Kafka',
-    rule: '訊息附加到 partition 的 log 並保留；consumer 自己記讀到哪個 offset。',
+    rule: '訊息照順序記在分區的帳本上，讀過也不刪；讀的人自己用書籤記讀到哪裡。',
     processLabel: '依 key 選 partition，附加到 log',
-    gateName: 'partitioner',
-    lanes: [{ id: 'p0', name: 'partition P0' }, { id: 'p1', name: 'partition P1' }],
+    gateName: '分區規則',
+    lanes: [{ id: 'p0', name: '分區 P0' }, { id: 'p1', name: '分區 P1' }],
     code: 'producer.send("orders", key, msg)\n<i>// consumer（group: 訂單服務）</i>\nfor (m of consumer.poll()) {\n  handle(m)\n  <b>consumer.commit(m.offset + 1)</b>\n}  <i>// 只記位置，不刪訊息</i>',
   },
 ];
@@ -112,8 +112,8 @@ function publishOne(id) {
   K.gate = id;
   push(`${id}-route`, C1, DECIDE_MS,
     `${id}（user ${key}）送出。RabbitMQ 的 exchange 依 routing key 決定放進哪個 queue；Kafka 用 key 算 partition：hash(${key}) % ${PARTITIONS} = ${HASH[key] % PARTITIONS}，放進 ${p.toUpperCase()}。`,
-    view(R, { current: [id], active: { in: true, lanes: [], consumers: [], phase: null }, verdict: `exchange → queue orders` }),
-    view(K, { current: [id], active: { in: true, lanes: [], consumers: [], phase: null }, verdict: `hash(${key}) % ${PARTITIONS} = ${HASH[key] % PARTITIONS} → ${p.toUpperCase()}` }));
+    view(R, { current: [id], active: { in: true, lanes: [], consumers: [], phase: null }, verdict: '分信員把它放進「訂單」佇列' }),
+    view(K, { current: [id], active: { in: true, lanes: [], consumers: [], phase: null }, verdict: `${key} 客人的訂單 → ${p.toUpperCase()} 區` }));
 
   R.gate = null;
   K.gate = null;
@@ -122,8 +122,8 @@ function publishOne(id) {
   const offset = K.lanes[p].length - 1;
   push(`${id}-store`, C1, LAND_MS,
     `${id} 落地。RabbitMQ 排進 queue orders 的尾端；Kafka 附加到 ${p.toUpperCase()} 的 log，拿到 offset ${offset}。`,
-    view(R, { current: [id], active: { in: false, lanes: ['orders'], consumers: [], phase: null }, verdict: `排進 queue 尾端` }),
-    view(K, { current: [id], active: { in: false, lanes: [p], consumers: [], phase: null }, verdict: `附加到 ${p.toUpperCase()}，offset ${offset}` }));
+    view(R, { current: [id], active: { in: false, lanes: ['orders'], consumers: [], phase: null }, verdict: '排到佇列最後面' }),
+    view(K, { current: [id], active: { in: false, lanes: [p], consumers: [], phase: null }, verdict: `記在 ${p.toUpperCase()} 區帳本的第 ${offset} 格` }));
 }
 publishOne('m1');
 publishOne('m2');
@@ -139,8 +139,8 @@ rest.forEach((id) => {
 const byPartition = (p) => rest.filter((id) => partitionOf(id) === p);
 push('batch-store', C1, LONG_MS,
   `${list(rest)} 一次送出。RabbitMQ 全部排進同一個 queue；Kafka 依 key 分流：${list(byPartition('p0'))} 進 P0，${list(byPartition('p1'))} 進 P1。`,
-  view(R, { current: rest, active: { in: true, lanes: ['orders'], consumers: [], phase: null }, verdict: `queue 裡有 ${R.lanes.orders.length} 則` }),
-  view(K, { current: rest, active: { in: true, lanes: ['p0', 'p1'], consumers: [], phase: null }, verdict: `P0 ${K.lanes.p0.length} 則、P1 ${K.lanes.p1.length} 則` }));
+  view(R, { current: rest, active: { in: true, lanes: ['orders'], consumers: [], phase: null }, verdict: `佇列裡有 ${R.lanes.orders.length} 則` }),
+  view(K, { current: rest, active: { in: true, lanes: ['p0', 'p1'], consumers: [], phase: null }, verdict: `P0 區 ${K.lanes.p0.length} 則、P1 區 ${K.lanes.p1.length} 則` }));
 
 // ---- 消費 ----
 const C2 = '消費';
@@ -179,8 +179,8 @@ const describe = (got) => (got.length ? got.map((g) => `${g.c.toUpperCase()} 拿
   const kPeek = ['c1', 'c2'].map((c) => K.lanes[assignment[c]][K.offsets.orders[assignment[c]]]);
   push('round1-pick', C2, DECIDE_MS,
     '訂單服務開了兩個 consumer：C1、C2。RabbitMQ 從 queue 前端依序輪流推給 C1、C2；Kafka 把 partition 分給 consumer，C1 讀 P0、C2 讀 P1，各從 offset 0 開始。',
-    view(R, { current: rPeek, active: { in: false, lanes: ['orders'], consumers: ['c1', 'c2'], phase: 'target' }, verdict: '輪流推送：C1、C2、C1、C2…' }),
-    view(K, { current: kPeek, active: { in: false, lanes: ['p0', 'p1'], consumers: ['c1', 'c2'], phase: 'target' }, verdict: 'C1 ← P0，C2 ← P1' }));
+    view(R, { current: rPeek, active: { in: false, lanes: ['orders'], consumers: ['c1', 'c2'], phase: 'target' }, verdict: '輪流發：C1、C2、C1、C2…' }),
+    view(K, { current: kPeek, active: { in: false, lanes: ['p0', 'p1'], consumers: ['c1', 'c2'], phase: 'target' }, verdict: 'C1 讀 P0 區，C2 讀 P1 區' }));
 }
 
 let round = 1;
@@ -188,8 +188,8 @@ let rGot = rabbitRound();
 let kGot = kafkaRound();
 push('round1-take', C2, LAND_MS,
   `RabbitMQ：${describe(rGot)}，consumer ack 後訊息就從 queue 刪掉。Kafka：${describe(kGot)}，訊息仍留在 log，只是兩個 partition 的 offset 都 0 → 1。`,
-  view(R, { active: { in: false, lanes: [], consumers: rGot.map((g) => g.c), phase: 'chosen' }, verdict: `ack → 刪除 ${list(rGot.map((g) => g.id))}` }),
-  view(K, { active: { in: false, lanes: [], consumers: kGot.map((g) => g.c), phase: 'chosen' }, verdict: `commit offset，${list(kGot.map((g) => g.id))} 仍在 log` }));
+  view(R, { active: { in: false, lanes: [], consumers: rGot.map((g) => g.c), phase: 'chosen' }, verdict: `處理完就刪除 ${list(rGot.map((g) => g.id))}` }),
+  view(K, { active: { in: false, lanes: [], consumers: kGot.map((g) => g.c), phase: 'chosen' }, verdict: `書籤往後移，${list(kGot.map((g) => g.id))} 仍在帳本上` }));
 
 // 之後每一輪一拍，直到兩邊都拿完
 const rabbitA = () => ['c1', 'c2'].filter((c) => R.consumers[c].some((id) => keyOf[id] === 'A'));
@@ -206,8 +206,8 @@ while (R.lanes.orders.length || K.offsets.orders.p0 < K.lanes.p0.length || K.off
     : '';
   push(`round${round}-take`, C2, done ? 5200 : LAND_MS,
     `${rText}${kText}${order}`,
-    view(R, { active: { in: false, lanes: [], consumers: rGot.map((g) => g.c), phase: 'chosen' }, verdict: rGot.length ? `ack → 刪除 ${list(rGot.map((g) => g.id))}` : 'queue 空了，無動作' }),
-    view(K, { active: { in: false, lanes: [], consumers: kGot.map((g) => g.c), phase: 'chosen' }, verdict: `offset P0 ${K.offsets.orders.p0}、P1 ${K.offsets.orders.p1}，log 仍有 ${K.lanes.p0.length + K.lanes.p1.length} 則` }));
+    view(R, { active: { in: false, lanes: [], consumers: rGot.map((g) => g.c), phase: 'chosen' }, verdict: rGot.length ? `處理完就刪除 ${list(rGot.map((g) => g.id))}` : '佇列空了，沒事做' }),
+    view(K, { active: { in: false, lanes: [], consumers: kGot.map((g) => g.c), phase: 'chosen' }, verdict: `書籤：P0 區第 ${K.offsets.orders.p0} 格、P1 區第 ${K.offsets.orders.p1} 格；帳本仍有 ${K.lanes.p0.length + K.lanes.p1.length} 則` }));
 }
 
 // ---- 新服務加入：能不能拿到過去的訊息 ----
@@ -217,8 +217,8 @@ R.lanes.an = []; // 新服務要在 RabbitMQ 收訊息，得建立自己的 queu
 K.offsets.an = { p0: 0, p1: 0 }; // Kafka 只要用新的 group 訂閱，從 offset 0 開始
 push('an-join', C3, LONG_MS,
   '訊息都處理完之後，新的分析服務上線，也想看所有訂單。RabbitMQ 要建立新的 queue analytics 綁到 exchange；Kafka 只要用新的 consumer group 訂閱同一個 topic，offset 從 0 開始。',
-  view(R, { active: { in: false, lanes: ['an'], consumers: ['an'], phase: 'target' }, verdict: '新建 queue analytics' }),
-  view(K, { active: { in: false, lanes: ['p0', 'p1'], consumers: ['an'], phase: 'target' }, verdict: '新 group：分析服務，offset 0' }));
+  view(R, { active: { in: false, lanes: ['an'], consumers: ['an'], phase: 'target' }, verdict: '新開一個「分析」佇列' }),
+  view(K, { active: { in: false, lanes: ['p0', 'p1'], consumers: ['an'], phase: 'target' }, verdict: '分析服務從帳本第一格開始讀' }));
 
 ['p0', 'p1'].forEach((p) => {
   K.lanes[p].forEach((id) => K.consumers.an.push(id));
@@ -227,8 +227,8 @@ push('an-join', C3, LONG_MS,
 const replayed = K.consumers.an.length;
 push('an-replay', C3, 5200,
   `RabbitMQ 的新 queue 是空的：舊訊息在 ack 時就刪了，新服務只收得到之後才送出的訊息。Kafka 的分析服務把 log 從頭重播，${replayed} 則全部拿到，而且不影響訂單服務的 offset。`,
-  view(R, { active: { in: false, lanes: [], consumers: [], phase: null }, verdict: `queue analytics：0 則，舊訊息拿不回來` }),
-  view(K, { current: K.consumers.an.slice(), active: { in: false, lanes: [], consumers: ['an'], phase: 'chosen' }, verdict: `從 offset 0 重播，拿到 ${replayed} 則` }));
+  view(R, { active: { in: false, lanes: [], consumers: [], phase: null }, verdict: '分析佇列是空的，舊訊息拿不回來' }),
+  view(K, { current: K.consumers.an.slice(), active: { in: false, lanes: [], consumers: ['an'], phase: 'chosen' }, verdict: `從第一格重讀，拿到 ${replayed} 則` }));
 
 // ---- 對照 ----
 const last = steps[steps.length - 1].data.panels;
@@ -260,3 +260,24 @@ export const slotCounts = {
   ]))])),
   consumers: Object.fromEntries(consumerDefs.map((c) => [c.id, Math.max(1, maxOf((p) => p.consumers[c.id].length))])),
 };
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  intro: '6 則訂單訊息，左邊交給 RabbitMQ，右邊交給 Kafka。藍色是 A 客人的訂單，橘色是 B 客人的。',
+  'm1-route': 'm1 送出。RabbitMQ 決定放進哪個佇列；Kafka 依客人把它分到某一區（分區）。',
+  'm1-store': 'm1 放好了：RabbitMQ 排在佇列尾端；Kafka 記在分區的帳本上。',
+  'm2-route': 'm2 是 B 客人的訂單，Kafka 把它分到另一區。',
+  'm2-store': 'm2 放好了。',
+  'batch-store': '剩下的訊息一次送出。RabbitMQ 全排在同一個佇列；Kafka 依客人分到兩個分區。',
+  'round1-pick': '訂單服務派兩個處理的人 C1、C2 來拿訊息。RabbitMQ 輪流發給兩人；Kafka 讓每人各負責一個分區。',
+  'round1-take': 'RabbitMQ 的訊息拿走就從佇列刪掉；Kafka 的訊息還留在帳本上，只是書籤往後移一格。',
+  'round2-take': '繼續處理下一批。',
+  'round3-take': 'RabbitMQ 的佇列已經空了；Kafka 的帳本還是完整的。',
+  'round4-take': 'A 客人的訂單在 RabbitMQ 被分給兩個人處理，順序可能亂掉；在 Kafka 全由 C1 依序處理。',
+  'an-join': '全部處理完之後，新的分析服務上線，也想看所有訂單。',
+  'an-replay': `RabbitMQ 的舊訊息早就刪了，新服務一則都拿不到；Kafka 從帳本第一頁重讀，${replayed} 則全部拿到。`,
+};
+const plain = (s) => PLAIN[s.id] || s.caption;
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

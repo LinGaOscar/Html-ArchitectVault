@@ -86,7 +86,7 @@ const roundRobin = simulate({
 
 const leastConnections = simulate({
   algorithm: 'Least Connections',
-  rule: '每次都給目前連線數最少的那一台。',
+  rule: '每次都交給目前手上工作最少的那一台。',
   code: 's = min(servers, by=conn)\ns.conn += 1',
   pickLabel: '最少',
   showCounts: true,
@@ -155,3 +155,22 @@ const compareStep = {
 };
 
 export const steps = [...runSteps, compareStep];
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+function plain(s) {
+  if (s.id === 'intro') return '8 個請求要分給 3 台伺服器。左邊照順序輪流分，右邊每次挑最閒的那台。橘框的請求很耗時，會佔住伺服器很久。';
+  if (s.id === 'compare') return `照順序輪流，曾讓一台同時扛 ${roundRobin.peak} 個請求；挑最閒的，一台最多只扛 ${leastConnections.peak} 個。`;
+  const [rr, lc] = s.data.panels;
+  const id = s.data.request.id;
+  if (s.data.kind === 'decide') {
+    // 有請求剛處理完時要講出來：右邊之所以改選別台，就是因為那台空出來了
+    const done = s.caption.match(/^(.*?) 已處理完/);
+    const lead = done ? `${done[1]} 處理完了。` : '';
+    return lead + (rr.chosen === lc.chosen
+      ? `請求 #${id} 進來，兩邊都交給 ${rr.chosen}。`
+      : `請求 #${id} 進來，兩邊選得不一樣：左邊照順序輪到 ${rr.chosen}，右邊挑最閒的 ${lc.chosen}。`);
+  }
+  return `#${id} 送出。左邊 ${rr.chosen} 現在同時處理 ${rr.held[rr.chosen].length} 個請求，右邊 ${lc.chosen} 處理 ${lc.held[lc.chosen].length} 個。`;
+}
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

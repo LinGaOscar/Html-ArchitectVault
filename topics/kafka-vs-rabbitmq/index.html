@@ -14,23 +14,28 @@
     <a class="back-link" href="../../index.html">← 返回首頁</a>
     <h1>Kafka vs RabbitMQ</h1>
     <section class="lesson-intro">
-      <p>服務之間用 message broker 傳訊息，送的一方不必等收的一方。RabbitMQ 和 Kafka 都能做到，但訊息存放的方式完全不同：RabbitMQ 把訊息推給 consumer，處理完就刪；Kafka 把訊息寫進 log 保留下來，consumer 自己記讀到哪裡。這個差別決定了能不能重播、順序怎麼保證、新服務能不能拿到舊資料。</p>
-      <p class="lesson-watch">左右兩邊收到同一串訊息。留意消費之後 broker 裡還剩什麼、同一個 user（同色）的訊息被分到哪個 consumer，以及最後才加入的分析服務拿到幾則。</p>
+      <div class="lesson-plain">
+        <p><b>生活情境</b>下單之後要寄確認信、扣庫存、更新報表。下單系統只要把「有新訂單」這件事丟出去，其他系統各自處理，下單就不必等它們全部做完。</p>
+        <p><b>打個比方</b>RabbitMQ 像郵局：信送到收件人手上，就從郵局移走。Kafka 像公司的帳本：每一筆都記下來，誰想看都能從任何一頁開始讀。</p>
+        <p><b>這頁比較</b>兩種常見的訊息中介：訊息處理完就刪掉，還是一直保留下來。</p>
+      </div>
+      <p>服務之間透過訊息中介（broker）傳遞訊息，送的一方不必等收的一方。RabbitMQ 把訊息交給處理的人，處理完就刪除；Kafka 把訊息記在帳本上保留下來，讀的人自己記讀到哪一頁。這個差別決定了能不能重讀舊訊息、處理順序有沒有保證，以及新加入的服務能不能拿到過去的資料。</p>
+      <p class="lesson-watch">左右兩邊收到同一串訊息。留意處理完之後中介裡還剩什麼、同一位客人（同色）的訂單被分給誰處理，以及最後才加入的分析服務拿到幾則。</p>
     </section>
     <div id="player-root"></div>
     <section class="lesson-summary">
       <h2>重點整理</h2>
       <dl>
-        <dt>RabbitMQ：訊息佇列</dt>
-        <dd>producer 送到 exchange，依路由規則放進 queue，broker 推給 consumer；consumer ack 之後訊息就刪除。同一個 queue 多加 consumer 就能分攤工作，適合任務派發。要讓多個服務都收到，得各建一個 queue 綁到 exchange，而且只收得到綁定之後的訊息。</dd>
-        <dd class="lesson-why"><b>為什麼這樣設計</b>它的目標是「把一件工作可靠地交給某個 worker」：每則訊息有確認、重試與死信佇列，路由規則也很彈性。處理完就刪除，broker 不必保存越來越多的資料。</dd>
-        <dt>Kafka：分散式 log</dt>
-        <dd>訊息依 key 附加到 topic 的某個 partition，在保留期限內不會因為被讀過而刪除。consumer group 自己記 offset，所以新的 group 可以從頭重播，出錯時也能把 offset 調回去重新處理。</dd>
-        <dd class="lesson-why"><b>為什麼這樣設計</b>LinkedIn 需要讓很多系統（搜尋索引、推薦、監控）各自讀同一份事件流，還要能重新處理過去的資料。把訊息當成只追加的 log、讓讀取方自己記位置，broker 就不必追蹤每個讀者，吞吐量也能非常高。</dd>
+        <dt>RabbitMQ（郵局：送到就移走）</dt>
+        <dd>訊息排進佇列，交給處理的人；處理完回報「收到了」，訊息就刪除。多加幾個處理的人就能分攤工作。要讓好幾個服務都收到同一則訊息，得各開一個佇列，而且只收得到開了之後的新訊息。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>它的目標是「把一件工作可靠地交到某個人手上」：每則訊息都會確認、失敗可以重送，分派規則也很彈性。處理完就刪，不必保存越來越多的資料。</dd>
+        <dt>Kafka（帳本：全部記下來）</dt>
+        <dd>訊息依客人分到不同的分區，照順序記在帳本上，被讀過也不刪。每個讀者自己用書籤（offset）記讀到哪裡，所以新的服務可以從第一頁重讀，出錯時也能把書籤往回翻重新處理。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>很多系統（搜尋、推薦、報表、監控）都想讀同一串事件，還要能重讀過去的資料。把訊息當成只往後加的帳本、讓讀者自己記位置，中介就不必追蹤每個讀者，速度也能非常快。</dd>
         <dt>順序</dt>
-        <dd>Kafka 只保證同一個 partition 內有序；同一個 key 永遠進同一個 partition，所以同一個 user 的事件會依序處理。RabbitMQ 一個 queue 配多個 consumer 時，同一個 user 的訊息可能被不同 consumer 同時處理，順序不保證。</dd>
+        <dd>Kafka 保證同一個分區裡照順序；同一位客人的訂單永遠在同一區，所以會依序處理。RabbitMQ 一個佇列有好幾個處理的人時，同一位客人的訂單可能被不同人同時處理，順序不保證。</dd>
         <dt>怎麼選</dt>
-        <dd>要把工作派出去、需要彈性路由或每則訊息的確認與重試，選 RabbitMQ。要保留事件、讓多個服務各自讀同一份資料、需要重播或很高的吞吐量，選 Kafka。</dd>
+        <dd>要把工作派出去、需要每則訊息都確認並能重送，選 RabbitMQ。要保留事件、讓好幾個服務各自讀同一份資料、需要重讀或大量傳輸，選 Kafka。</dd>
       </dl>
     </section>
   </main>

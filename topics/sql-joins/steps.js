@@ -189,3 +189,24 @@ const compareStep = {
 };
 
 export const steps = [startStep, ...eventSteps, compareStep];
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+function plain(s) {
+  if (s.id === 'start') return '把「使用者」和「訂單」兩張表對起來，合成一張結果表。四種 JOIN 的差別只有一個：對不上的資料要不要留。';
+  if (s.id === 'compare') return `結果列數：${countText}。資料一樣，差別全在對不上的那幾列留不留。`;
+  const [kind, num, beat] = s.id.split('-');
+  if (kind === 'orphan') {
+    return beat === 'compare'
+      ? `訂單 #${num} 找不到對應的使用者。${dropOrderNames} 不留，${keepOrderNames} 留下。`
+      : `${keepOrderNames} 留下訂單 #${num}，使用者欄位空白（NULL）。`;
+  }
+  const user = users.find((u) => u.id === Number(num));
+  const n = matchesOf(user).length;
+  if (beat === 'compare') {
+    return n ? `${user.name} 在訂單表找到 ${n} 筆訂單，四種 JOIN 都會留下。` : `${user.name} 沒有任何訂單，對不上。四種 JOIN 在這裡做法不同。`;
+  }
+  if (n) return `每一組配對變成結果表的一列，四邊都多 ${n} 列。${n > 1 ? '一個人兩筆訂單，就變成兩列。' : ''}`;
+  return `${dropUserNames} 丟掉 ${user.name}；${keepUserNames} 留下 ${user.name}，訂單欄位空白（NULL）。`;
+}
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

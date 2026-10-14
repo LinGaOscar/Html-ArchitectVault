@@ -16,7 +16,7 @@ export const systems = [
   {
     id: 'sync',
     title: '同步等待',
-    rule: '一個 HTTP 請求一路等到報表做完才回應。寫起來最簡單，前端只要 await 一次。',
+    rule: '一個請求一路等到報表做完才回覆。寫起來最簡單。',
     processLabel: '時間軸：誰在等、誰被佔住',
     code: 'const res = await fetch("/reports", { method: "POST" })\n<i>// 等 85 秒……</i>\ndownload(await res.blob())',
   },
@@ -24,7 +24,7 @@ export const systems = [
     id: 'poll',
     title: '202 + 輪詢',
     short: '輪詢',
-    rule: '伺服器立刻回 202 Accepted 與工作編號，背景慢慢做；前端每隔一段時間問一次「好了沒」。',
+    rule: '伺服器先回「收到了」和一個工作編號，報表交給後台做；瀏覽器每 10 秒問一次「好了沒」。',
     processLabel: '時間軸：誰在等、誰被佔住',
     code: 'const { jobId } = await post("/reports") <i>// 202</i>\nwhile (true) {\n  await sleep(10_000)\n  const job = await get(`/jobs/${jobId}`)\n  if (job.done) <b>return download(job.url)</b>\n}',
   },
@@ -32,7 +32,7 @@ export const systems = [
     id: 'push',
     title: '推播（WebSocket / SSE）',
     short: '推播',
-    rule: '伺服器同樣先回 202；前端保持一條長連線，報表做完由伺服器主動推一則「完成」通知。',
+    rule: '伺服器同樣先回「收到了」；瀏覽器保持一條連線，報表做完由伺服器主動通知。',
     processLabel: '時間軸：誰在等、誰被佔住',
     code: 'const { jobId } = await post("/reports") <i>// 202</i>\nconst es = new EventSource(`/jobs/${jobId}/events`)\nes.onmessage = (e) => {\n  if (e.data === "done") <b>download(…)</b>\n}',
   },
@@ -202,3 +202,19 @@ steps.push({
   caption: '工作超過幾秒，就不該讓一個請求等到底：先回 202 把「接收」和「完成」拆開。之後用輪詢還是推播，取決於要多即時、伺服器能不能維持大量長連線。',
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  start: `使用者按「匯出報表」，後端要做 ${JOB} 秒。同步的做法讓瀏覽器一直等；另外兩種先回覆「收到了」，報表交給後台慢慢做。`,
+  'wait-30': `過了 30 秒。輪詢已經問了 ${statsAt(sims[1], 30).reqs - 1} 次「好了沒」；推播什麼都不用做，等通知就好。`,
+  'wait-60': `第 ${GATEWAY_TIMEOUT} 秒，同步等待超過等待上限，畫面顯示錯誤。但後端其實還在做。`,
+  retry: '使用者以為失敗了，又按一次。後端開始做第二份一模一樣的報表。',
+  done: `第 ${JOB} 秒報表做完。推播馬上通知使用者；同步那邊的連線早就斷了，做好的報表沒人收。`,
+  'poll-hit': `第 ${sims[1].knownAt} 秒，輪詢終於問到「好了」，比實際完成晚了 ${sims[1].knownAt - JOB} 秒。`,
+  load: `如果 ${USERS} 人同時匯出：同步要一直佔住 ${USERS} 條連線；輪詢每秒湧進 ${USERS / POLL_EVERY} 次詢問；推播要維持 ${USERS} 條閒置的連線。`,
+  compare: '工作超過幾秒，就先回覆「收到了」，做完再通知。用輪詢還是推播，看要多即時、伺服器撐不撐得住大量連線。',
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

@@ -337,3 +337,33 @@ steps.push({
   duration: 6500,
   data: { kind: 'compare' },
 });
+
+
+// ---- 給入門讀者的白話說明 ----
+// 畫面上一次只放一兩句、先講結果；原本完整的說明移到 detail，讀者按「看詳細說明」才展開
+const PLAIN = {
+  start: '上方是一段程式，會一行一行執行。下方左邊是 Stack（自動整理的記憶體），右邊是 Heap（要自己借、自己還的記憶體）。',
+  'enter-main-read': '程式從 main 這個函式開始執行。',
+  'enter-main-act': '每進入一個函式，Stack 就疊上一層，放這個函式自己的變數。',
+  'call-load-read': 'main 呼叫 load，先進到 load 裡面。',
+  'call-load-act': 'Stack 再疊一層給 load。',
+  'malloc-a-read': 'load 用 malloc 向 Heap 借一塊 4MB 的空間。',
+  'malloc-a-act': '4MB 區塊放進 Heap，load 的變數 p 記下它的位置，像一張寫著地址的紙條。',
+  'return-load-read': 'load 把這個地址交回給 main，然後結束。',
+  'return-load-act': 'load 結束，它在 Stack 的那一層自動消失；但 Heap 裡的 4MB 區塊還在。',
+  'assign-a-read': '回到 main，把收到的地址存進變數 a。',
+  'assign-a-act': '現在換成 main 的 a 記著 4MB 區塊的位置。這塊空間比借它的 load 活得還久。',
+  'call-work-read': 'main 呼叫 work，把地址複製一份給它。',
+  'call-work-act': 'Stack 疊一層給 work。兩個變數都指向同一塊 4MB。',
+  'malloc-t-read': 'work 又向 Heap 借一塊 2MB，地址記在變數 t。',
+  'malloc-t-act': '2MB 區塊放進 Heap，只有 work 的 t 知道它在哪。',
+  'return-work-read': 'work 要結束了，但它沒有把 2MB 還回去。',
+  'return-work-act': 'work 那一層消失，t 也跟著不見。再也沒有人記得 2MB 在哪，永遠還不回去：這就是記憶體洩漏。',
+  'free-a-read': 'main 用 free 把 4MB 還給 Heap。',
+  'free-a-act': '4MB 歸還了。Stack 會自動清，Heap 只有主動 free 才會歸還。',
+  'end-main-read': 'main 結束，程式快跑完了。',
+  'end-main-act': 'Stack 全部清空；Heap 還留著那塊沒人管的 2MB。',
+  compare: `Stack 自動清掉 ${summary.cleaned} 個變數；Heap 借了 ${summary.allocated} 塊、只還 ${summary.freed} 塊，漏掉 ${summary.leakedSize}。`,
+};
+const plain = (s) => PLAIN[s.id];
+steps.forEach((s) => { s.detail = s.caption; s.caption = plain(s); });

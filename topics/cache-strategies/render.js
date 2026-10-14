@@ -23,22 +23,22 @@ function panelHtml(strategy) {
         </svg>
         <div class="flow cs-flow">
           <section class="flow-col cs-col" data-col="app">
-            <h4>輸入 <small>App 發出操作</small></h4>
-            <div class="cs-role">App</div>
+            <h4>輸入 <small>程式發出的操作</small></h4>
+            <div class="cs-role">程式（App）</div>
             <div class="cs-op"></div>
             <div class="cs-slots">${SLOT('app-res')}</div>
           </section>
           <section class="flow-col cs-col" data-col="cache">
-            <h4>處理 <small>Cache 判斷</small></h4>
-            <div class="cs-role">Cache</div>
+            <h4>處理 <small>先看快取</small></h4>
+            <div class="cs-role">快取（Cache）</div>
             <div class="cs-entry" data-state="empty"><span class="cs-key">${KEY}</span><span class="cs-val"></span></div>
             <div class="cs-tag"></div>
             <div class="cs-slots">${SLOT('cache-req')}</div>
             <p class="cs-verdict"></p>
           </section>
           <section class="flow-col cs-col" data-col="db">
-            <h4>輸出 <small>DB 最終落地</small></h4>
-            <div class="cs-role">DB</div>
+            <h4>輸出 <small>資料庫存最終資料</small></h4>
+            <div class="cs-role">資料庫（DB）</div>
             <div class="cs-entry cs-entry-db"><span class="cs-key">${KEY}</span><span class="cs-val"></span></div>
             <div class="cs-counts">讀 <b class="cs-reads">0</b> · 寫 <b class="cs-writes">0</b></div>
             <div class="cs-slots">${SLOT('db-req')}</div>
@@ -172,7 +172,7 @@ function entryState(d) {
 }
 
 const TAGS = {
-  dirty: 'dirty：尚未寫回 DB',
+  dirty: '還沒存進資料庫',
   crashed: '故障',
 };
 
@@ -196,7 +196,7 @@ function updatePanel(panel, d, prevD, step, animate) {
 
   const state = entryState(d);
   panel.cacheEntry.dataset.state = state;
-  panel.tag.textContent = state === 'stale' ? `舊值：DB 已是 ${d.db}` : TAGS[state] || '';
+  panel.tag.textContent = state === 'stale' ? `舊值：資料庫已是 ${d.db}` : TAGS[state] || '';
   setValue(panel.cacheVal, prevD ? show(prevD.cache) : null, show(d.cache), animate);
   setValue(panel.dbVal, prevD ? prevD.db : null, d.db, animate);
   setValue(panel.reads, prevD ? String(prevD.reads) : null, String(d.reads), animate);
