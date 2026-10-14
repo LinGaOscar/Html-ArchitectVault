@@ -1,0 +1,125 @@
+/* Kafka vs RabbitMQ 主題專屬樣式；共用的 .chip、.flow、.flow-col、.delta 等在 assets/css/base.css */
+/* 舞台：兩種 broker 各一個面板並排；訊息是疊在版面上的常駐 token，靠 transform 在各個位置之間移動 */
+.mq-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bs-spacer-3); }
+.mq-panel { min-width: 0; }
+.mq-title { margin: 0; font-size: 1.0625rem; }
+.mq-rule { min-height: 2.8em; margin: var(--bs-spacer-1) 0 var(--bs-spacer-2); color: var(--bs-secondary-color); font-size: .8125rem; }
+.mq-code { min-height: calc(9em + 2 * var(--bs-spacer-2) + 2px); font-size: .75rem; }
+.mq-scene { position: relative; }
+
+/* 訊息的 key 決定顏色：同一個 user 的訊息顏色一致，才看得出它們被分到哪裡 */
+.mq-token[data-key="A"] { --mq-c: var(--bs-info); --fx-c: var(--bs-info); }
+.mq-token[data-key="B"] { --mq-c: var(--bs-warning); --fx-c: var(--bs-warning); }
+
+.mq-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.mq-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease, opacity .3s ease; }
+.mq-wire.is-active { stroke: var(--bs-primary); stroke-width: 3; stroke-dasharray: 10 14; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--fx-c)); animation: fx-wire-flow .45s linear infinite; }
+.mq-wire.is-absent { opacity: 0; }
+
+.mq-slot {
+  display: inline-block;
+  flex: none;
+  width: 2.25rem;
+  height: 1.5rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+}
+.mq-producer .mq-slot { border-color: transparent; }
+.mq-producer, .mq-lslots, .mq-cslots { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.mq-tokens { position: absolute; inset: 0; pointer-events: none; }
+.mq-token { position: absolute; left: 0; top: 0; will-change: transform; }
+.mq-token .chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 1.5rem;
+  padding: 0;
+  border-color: var(--mq-c);
+  background: color-mix(in srgb, var(--mq-c) 20%, var(--bs-secondary-bg));
+  font-size: .75rem;
+}
+.mq-token.is-current .chip { animation: fx-pulse 1s ease-in-out infinite; }
+.mq-token.is-gone .chip { opacity: 0; transform: scale(.4); }
+
+.mq-process { display: flex; align-items: flex-start; gap: var(--bs-spacer-3); }
+.mq-gate { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: none; }
+.mq-gname { color: var(--bs-secondary-color); font-size: .6875rem; }
+.mq-lanes { display: flex; flex-direction: column; gap: var(--bs-spacer-1); flex: 1; min-width: 0; }
+.mq-lane {
+  position: relative;
+  padding: 2px var(--bs-spacer-1) var(--bs-spacer-1);
+  border: 1px solid transparent;
+  border-radius: var(--bs-border-radius-sm);
+  transition: border-color .3s ease, opacity .4s ease;
+}
+.mq-lane.is-active { border-color: var(--bs-primary); animation: fx-pulse 1.2s ease-in-out infinite; }
+.mq-lane.is-absent { opacity: .35; }
+.mq-lhead { display: flex; justify-content: space-between; gap: var(--bs-spacer-2); margin-bottom: 2px; font-size: .75rem; }
+.mq-lhead b { font-weight: normal; }
+.mq-lmeta { color: var(--bs-secondary-color); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* offset 指標：兩個 consumer group 各一排，各自前進、互不影響 */
+.mq-ptrs { position: relative; height: 1.75rem; }
+.mq-ptr {
+  position: absolute;
+  left: 0;
+  font-size: .625rem;
+  line-height: .875rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: transform .5s cubic-bezier(.3, 1.4, .5, 1), opacity .3s ease;
+}
+.mq-ptr[data-group="orders"] { top: 0; color: var(--bs-primary); text-shadow: 0 0 6px var(--bs-primary); }
+.mq-ptr[data-group="an"] { top: .875rem; color: var(--bs-body-color); }
+.mq-verdict { min-height: 1.6em; margin: var(--bs-spacer-1) 0 0; font-size: .8125rem; }
+
+.mq-consumers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--bs-spacer-2); }
+.mq-consumer {
+  --fx-c: var(--bs-primary);
+  min-width: 0;
+  padding: var(--bs-spacer-1) var(--bs-spacer-2) var(--bs-spacer-2);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-secondary-bg);
+  transition: border-color .3s ease, background-color .3s ease, opacity .4s ease;
+}
+.mq-consumer.is-target { border-color: var(--bs-primary); border-style: dashed; animation: fx-pulse 1s ease-in-out infinite; }
+.mq-consumer.is-chosen { border-color: var(--bs-primary); background: color-mix(in srgb, var(--bs-primary) 10%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-bump .4s ease-out; }
+.mq-consumer.is-absent { opacity: .3; border-style: dashed; }
+.mq-cname { font-size: .8125rem; font-weight: bold; }
+.mq-cname small { color: var(--bs-secondary-color); font-weight: normal; font-size: .6875rem; }
+.mq-count { margin-bottom: var(--bs-spacer-1); color: var(--bs-secondary-color); font-size: .75rem; }
+.mq-num { display: inline-block; color: var(--bs-body-color); font-weight: bold; }
+
+.mq-compare .mq-title { display: block; margin-bottom: var(--bs-spacer-3); }
+.mq-compare-table { font-family: var(--bs-font-sans-serif); font-size: .875rem; }
+.mq-compare-table td, .mq-compare-table th { vertical-align: top; }
+.mq-compare-table tbody th { color: var(--bs-body-color); }
+
+/* 手機：兩個面板直排（每個面板內的三段仍完整），格子與字縮小 */
+@media (max-width: 760px) {
+  .mq-panels { grid-template-columns: minmax(0, 1fr); gap: var(--bs-spacer-4); }
+  .flow-col h4 small { display: none; }
+  .mq-title { font-size: .9375rem; }
+  .mq-rule { min-height: 0; font-size: .6875rem; }
+  .mq-code { min-height: 0; font-size: .625rem; }
+  .mq-panel .flow { gap: 18px; }
+  .mq-panel .flow-col { padding: var(--bs-spacer-1); }
+  .mq-panel .flow-col h4 { margin-bottom: var(--bs-spacer-1); font-size: .75rem; }
+  .mq-slot, .mq-token .chip { width: 1.75rem; height: 1.25rem; font-size: .625rem; }
+  .mq-producer, .mq-lslots, .mq-cslots { gap: 3px; }
+  .mq-process { gap: var(--bs-spacer-2); }
+  .mq-lhead { font-size: .625rem; }
+  .mq-verdict { font-size: .6875rem; }
+  .mq-consumers { gap: 4px; }
+  .mq-consumer { padding: 2px 4px 4px; }
+  .mq-cname { font-size: .6875rem; }
+  .mq-cname small { display: block; font-size: .5625rem; }
+  .mq-count { font-size: .625rem; }
+  .mq-compare-table { font-size: .6875rem; }
+  .mq-compare-table th, .mq-compare-table td { padding: var(--bs-spacer-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mq-wire.is-active { animation: none; }
+}

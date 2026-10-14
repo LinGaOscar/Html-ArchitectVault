@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kafka vs RabbitMQ - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>Kafka vs RabbitMQ</h1>
+    <section class="lesson-intro">
+      <p>服務之間用 message broker 傳訊息，送的一方不必等收的一方。RabbitMQ 和 Kafka 都能做到，但訊息存放的方式完全不同：RabbitMQ 把訊息推給 consumer，處理完就刪；Kafka 把訊息寫進 log 保留下來，consumer 自己記讀到哪裡。這個差別決定了能不能重播、順序怎麼保證、新服務能不能拿到舊資料。</p>
+      <p class="lesson-watch">左右兩邊收到同一串訊息。留意消費之後 broker 裡還剩什麼、同一個 user（同色）的訊息被分到哪個 consumer，以及最後才加入的分析服務拿到幾則。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>RabbitMQ：訊息佇列</dt>
+        <dd>producer 送到 exchange，依路由規則放進 queue，broker 推給 consumer；consumer ack 之後訊息就刪除。同一個 queue 多加 consumer 就能分攤工作，適合任務派發。要讓多個服務都收到，得各建一個 queue 綁到 exchange，而且只收得到綁定之後的訊息。</dd>
+        <dt>Kafka：分散式 log</dt>
+        <dd>訊息依 key 附加到 topic 的某個 partition，在保留期限內不會因為被讀過而刪除。consumer group 自己記 offset，所以新的 group 可以從頭重播，出錯時也能把 offset 調回去重新處理。</dd>
+        <dt>順序</dt>
+        <dd>Kafka 只保證同一個 partition 內有序；同一個 key 永遠進同一個 partition，所以同一個 user 的事件會依序處理。RabbitMQ 一個 queue 配多個 consumer 時，同一個 user 的訊息可能被不同 consumer 同時處理，順序不保證。</dd>
+        <dt>怎麼選</dt>
+        <dd>要把工作派出去、需要彈性路由或每則訊息的確認與重試，選 RabbitMQ。要保留事件、讓多個服務各自讀同一份資料、需要重播或很高的吞吐量，選 Kafka。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>
