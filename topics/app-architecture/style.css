@@ -1,0 +1,6 @@
+/* 程式內部分層主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的規則說明長短不一，桌機並排時固定高度，下面的架構圖才對得齊 */
+.ar-page .dg-rule { min-height: 5.6em; }
+@media (max-width: 760px) {
+  .ar-page .dg-rule { min-height: 0; }
+}

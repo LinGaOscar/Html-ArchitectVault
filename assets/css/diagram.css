@@ -1,0 +1,205 @@
+/* 架構比較主題共用的架構圖樣式（assets/js/engine/diagram.js 產生的 DOM）。
+   箭頭種類、方塊狀態在每個架構主題都長一樣，讀者學一次就能看懂全部。 */
+.dg-panels { display: grid; grid-template-columns: repeat(var(--panels), minmax(0, 1fr)); gap: var(--bs-spacer-3); }
+.dg-panel { min-width: 0; }
+.dg-title { margin: 0; font-size: 1.0625rem; }
+.dg-rule { min-height: 4.2em; margin: var(--bs-spacer-1) 0 var(--bs-spacer-2); color: var(--bs-secondary-color); font-size: .8125rem; }
+.dg-code { font-size: .75rem; }
+.dg-scene { position: relative; }
+.dg-action { margin: 0; font-size: .875rem; font-weight: bold; color: var(--bs-info); }
+.dg-verdict { min-height: 2.8em; margin: var(--bs-spacer-2) 0 0; font-size: .8125rem; }
+
+.dg-wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.dg-wire { fill: none; stroke: var(--bs-border-color); stroke-width: 2; transition: stroke .3s ease; }
+.dg-wire.is-active { stroke: var(--bs-primary); stroke-width: 3; stroke-dasharray: 10 14; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--bs-primary)); animation: fx-wire-flow .45s linear infinite; }
+
+/* 方塊的顏色代表它在架構裡的角色：核心綠、應用藍、轉接層黃、基礎設施灰、測試紫 */
+[data-ring="core"] { --dg-c: var(--bs-primary); }
+[data-ring="app"], [data-ring="ui"] { --dg-c: var(--bs-info); }
+[data-ring="adapter"] { --dg-c: var(--bs-warning); }
+[data-ring="infra"] { --dg-c: var(--bs-secondary-color); }
+[data-ring="test"] { --dg-c: var(--bs-purple); }
+[data-ring="module"] { --dg-c: var(--bs-info); }
+
+.dg-diagram {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  grid-auto-rows: minmax(3.25rem, auto);
+  gap: 30px 14px;
+  padding: var(--bs-spacer-3) var(--bs-spacer-1) var(--bs-spacer-1);
+}
+.dg-edges { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.dg-edge { fill: none; stroke: color-mix(in srgb, var(--bs-body-color) 45%, transparent); stroke-width: 1.75; transition: stroke .3s ease, opacity .4s ease; }
+.dg-edge.kind-iface { stroke-dasharray: 5 4; }
+.dg-edge.kind-net { stroke-width: 2.5; stroke-dasharray: 2 5; stroke-linecap: round; }
+.dg-edge.kind-bind { stroke-dasharray: 1 4; stroke-linecap: round; stroke-width: 2.5; }
+.dg-edge.kind-event { stroke-dasharray: 8 4 2 4; }
+.dg-edge.is-hidden { opacity: 0; }
+.dg-edge[data-state="on"] {
+  stroke: var(--bs-primary);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px var(--bs-primary));
+  animation: fx-wire-flow .45s linear infinite;
+}
+.dg-edge.kind-dep[data-state="on"] { stroke-dasharray: 10 6; }
+.dg-edge[data-state="cut"] { stroke: var(--bs-danger); stroke-dasharray: 3 4; }
+.dg-mark path { fill: color-mix(in srgb, var(--bs-body-color) 45%, transparent); }
+.dg-mark.is-on path { fill: var(--bs-primary); }
+.dg-mark path.dg-head-hollow { fill: var(--bs-tertiary-bg); stroke: color-mix(in srgb, var(--bs-body-color) 45%, transparent); stroke-width: 1.2; }
+.dg-mark.is-on path.dg-head-hollow { stroke: var(--bs-primary); }
+
+/* 外框：部署單元或一組元件；複本數用疊起來的影子表示，一眼看出「整包複製了幾份」 */
+.dg-group {
+  position: relative;
+  z-index: 0;
+  margin: -10px -6px;
+  border: 1px dashed color-mix(in srgb, var(--bs-info) 60%, transparent);
+  border-radius: var(--bs-border-radius);
+  background: color-mix(in srgb, var(--bs-info) 5%, transparent);
+  transition: border-color .3s ease, background-color .3s ease, box-shadow .4s ease;
+}
+.dg-gname, .dg-gbadge {
+  position: absolute;
+  top: -.75em;
+  padding: 0 4px;
+  background: var(--bs-tertiary-bg);
+  font-size: .6875rem;
+  line-height: 1.5;
+}
+.dg-gname { left: 8px; color: var(--bs-info); }
+.dg-gname:empty { display: none; }
+/* 模組邊界：畫在部署單元裡面的細框，表示「程式碼分開、但一起部署」 */
+.dg-group[data-kind="boundary"] { margin: -5px -3px; border-color: color-mix(in srgb, var(--bs-warning) 55%, transparent); background: none; }
+.dg-gbadge { right: 8px; color: var(--bs-primary); font-weight: bold; }
+.dg-gbadge:empty { display: none; }
+.dg-group[data-state="scaled"] {
+  border-style: solid;
+  border-color: var(--bs-primary);
+  box-shadow: 5px 5px 0 -1px var(--bs-tertiary-bg), 5px 5px 0 0 color-mix(in srgb, var(--bs-primary) 60%, transparent),
+    10px 10px 0 -1px var(--bs-tertiary-bg), 10px 10px 0 0 color-mix(in srgb, var(--bs-primary) 35%, transparent);
+  animation: fx-bump .4s ease-out;
+}
+.dg-group[data-state="broken"] { border-style: solid; border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 14%, transparent); }
+.dg-group[data-state="broken"] .dg-gname { color: var(--bs-danger); }
+.dg-group[data-state="deploy"] { --fx-c: var(--bs-info); border-style: solid; border-color: var(--bs-info); animation: fx-pulse 1s ease-in-out infinite; }
+
+.dg-node {
+  --fx-c: var(--dg-c);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid color-mix(in srgb, var(--dg-c) 55%, var(--bs-border-color));
+  border-left: 3px solid var(--dg-c);
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-secondary-bg);
+  font-size: .75rem;
+  line-height: 1.3;
+  transition: opacity .4s ease, border-color .3s ease, background-color .3s ease, transform .4s ease, filter .3s ease;
+}
+.dg-name { overflow-wrap: break-word; }
+.dg-sub, .dg-note { color: var(--bs-secondary-color); font-size: .6875rem; }
+.dg-note { color: var(--bs-body-color); }
+.dg-note:empty, .dg-badge:empty { display: none; }
+.dg-badge {
+  position: absolute;
+  top: -.6rem;
+  left: -.4rem;
+  padding: 0 4px;
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--bs-primary);
+  color: var(--bs-body-bg);
+  font-size: .625rem;
+  font-weight: bold;
+}
+.dg-node.is-hidden { opacity: 0; transform: scale(.7); pointer-events: none; }
+
+/* 方塊狀態：左上角的小字標籤直接說出狀態，不靠顏色猜 */
+.dg-node[data-state]:not([data-state=""])::after {
+  position: absolute;
+  top: -.6rem;
+  right: -.3rem;
+  padding: 0 4px;
+  border-radius: var(--bs-border-radius-sm);
+  background: var(--fx-c);
+  color: var(--bs-body-bg);
+  font-size: .625rem;
+  font-weight: bold;
+  line-height: 1.4;
+}
+.dg-node[data-state="active"] { border-color: var(--bs-primary); --fx-c: var(--bs-primary); animation: fx-pulse 1s ease-in-out infinite; }
+.dg-node[data-state="focus"] { border-color: var(--dg-c); background: color-mix(in srgb, var(--dg-c) 14%, var(--bs-secondary-bg)); animation: fx-pulse 1.4s ease-in-out infinite; }
+.dg-node[data-state="changed"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); background: color-mix(in srgb, var(--bs-warning) 18%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-shake .45s ease-out; }
+.dg-node[data-state="changed"]::after { content: "要改"; }
+.dg-node[data-state="new"] { --fx-c: var(--bs-primary); border-style: solid; background: color-mix(in srgb, var(--bs-primary) 12%, var(--bs-secondary-bg)); animation: fx-impact .8s ease-out forwards, fx-bump .4s ease-out; }
+.dg-node[data-state="new"]::after { content: "新增"; }
+.dg-node[data-state="old"] { opacity: .5; border-style: dashed; }
+.dg-node[data-state="old"]::after { content: "要換掉"; --fx-c: var(--bs-secondary-color); }
+.dg-node[data-state="needed"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 14%, var(--bs-secondary-bg)); animation: fx-pulse .9s ease-in-out infinite; }
+.dg-node[data-state="needed"]::after { content: "綁住"; }
+.dg-node[data-state="mocked"] { --fx-c: var(--bs-purple); border-style: dashed; animation: fx-impact .8s ease-out forwards; }
+.dg-node[data-state="mocked"]::after { content: "假的"; }
+.dg-node[data-state="broken"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 20%, var(--bs-secondary-bg)); filter: saturate(.6); animation: fx-shake .45s ease-out; }
+.dg-node[data-state="broken"]::after { content: "停擺"; }
+.dg-node[data-state="deploy"] { --fx-c: var(--bs-info); border-color: var(--bs-info); animation: fx-impact .8s ease-out forwards; }
+.dg-node[data-state="deploy"]::after { content: "重新部署"; }
+.dg-node[data-state="stale"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); border-style: dashed; animation: fx-pulse 1.2s ease-in-out infinite; }
+.dg-node[data-state="stale"]::after { content: "舊資料"; }
+.dg-node[data-state="ok"] { --fx-c: var(--bs-success); border-color: var(--bs-success); animation: fx-impact .7s ease-out forwards; }
+.dg-node[data-state="ok"]::after { content: "OK"; }
+
+.dg-tokens { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.dg-token { position: absolute; left: 0; top: 0; will-change: transform; }
+.dg-token .chip {
+  display: block;
+  padding: 0 6px;
+  border-color: var(--fx-c);
+  background: color-mix(in srgb, var(--fx-c) 28%, var(--bs-secondary-bg));
+  font-size: .6875rem;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.dg-token[data-tone="req"] { --fx-c: var(--bs-primary); }
+.dg-token[data-tone="data"] { --fx-c: var(--bs-info); }
+.dg-token[data-tone="event"] { --fx-c: var(--bs-warning); }
+.dg-token[data-tone="err"] { --fx-c: var(--bs-danger); }
+.dg-token.is-gone .chip { opacity: 0; transform: scale(.4); }
+
+/* 標籤欄保留最小寬度，數值太長時由數值自己換行，標籤才不會被擠成一字一行 */
+.dg-stats { display: grid; grid-template-columns: minmax(7em, 1fr) minmax(0, max-content); gap: 2px var(--bs-spacer-2); margin: 0; font-size: .8125rem; }
+.dg-stat { display: contents; }
+.dg-stat dt { color: var(--bs-secondary-color); }
+.dg-stat dd { display: inline-block; justify-self: end; min-width: 0; margin: 0; overflow-wrap: anywhere; font-weight: bold; text-align: right; font-variant-numeric: tabular-nums; }
+
+.dg-compare .dg-title { display: block; margin-bottom: var(--bs-spacer-3); }
+.dg-compare-table { font-family: var(--bs-font-sans-serif); font-size: .875rem; }
+.dg-compare-table td, .dg-compare-table th { vertical-align: top; }
+.dg-compare-table tbody th { color: var(--bs-body-color); white-space: nowrap; }
+
+/* 手機：面板直排，每個面板內的架構圖完整保留，方塊與字縮小 */
+@media (max-width: 760px) {
+  .dg-panels { grid-template-columns: minmax(0, 1fr); gap: var(--bs-spacer-4); }
+  .dg-panel .flow-col h4 small { display: none; }
+  .dg-title { font-size: .9375rem; }
+  .dg-rule { min-height: 0; font-size: .6875rem; }
+  .dg-code { font-size: .625rem; }
+  .dg-panel .flow { gap: 18px; }
+  .dg-panel .flow-col { padding: var(--bs-spacer-1); }
+  .dg-panel .flow-col h4 { margin-bottom: var(--bs-spacer-1); font-size: .75rem; }
+  .dg-action { font-size: .75rem; }
+  .dg-diagram { gap: 26px 10px; grid-auto-rows: minmax(2.75rem, auto); }
+  .dg-node { padding: 3px 4px; font-size: .6875rem; }
+  .dg-sub, .dg-note { font-size: .5625rem; }
+  .dg-stats { font-size: .6875rem; }
+  .dg-verdict { min-height: 0; font-size: .6875rem; }
+  .dg-compare-table { font-size: .6875rem; }
+  .dg-compare-table th, .dg-compare-table td { padding: var(--bs-spacer-1); }
+  .dg-compare-table tbody th { white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dg-wire.is-active, .dg-edge[data-state="on"] { animation: none; }
+}

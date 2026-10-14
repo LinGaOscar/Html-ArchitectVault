@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>程式內部分層 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide ar-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>程式內部分層：三層式 vs 六角架構 vs Clean Architecture</h1>
+    <section class="lesson-intro">
+      <p>一個應用程式的程式碼要怎麼分層，決定了改需求時會牽動多少地方。三層式依照「展示、業務、資料」由上往下堆；六角架構和 Clean Architecture 則把業務邏輯放在中心，讓資料庫、Web 框架這些外部的東西反過來依賴它。三者執行起來的呼叫路徑差不多，差別在原始碼的依賴方向。</p>
+      <p class="lesson-watch">箭頭代表「誰 import 誰」，實線是依賴具體類別，虛線是依賴介面。留意綠色的業務邏輯有沒有往外指的箭頭，以及換資料庫、寫單元測試時，哪些方塊被標成「要改」或「綁住」。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>三層式（Layered）</dt>
+        <dd>最直覺也最常見。每層只呼叫下一層，但業務邏輯直接依賴資料存取類別，資料庫換了或想脫離資料庫測試時，業務邏輯就會被牽動。若在業務層和資料層之間加上介面（依賴反轉），它就往六角架構靠攏了。</dd>
+        <dt>六角架構（Ports &amp; Adapters）</dt>
+        <dd>核心定義自己需要的 Port 介面，外面的 Adapter 去實作或呼叫它。資料庫、HTTP、訊息佇列都只是可替換的 Adapter，由 main 在啟動時組裝起來。</dd>
+        <dt>Clean Architecture</dt>
+        <dd>和六角架構同一個家族，再把核心細分成 Entity（企業規則）和 Use Case（應用規則），依賴一律由外圈指向內圈。分得越細越能隔離變化，也越容易對小專案過度設計。</dd>
+        <dt>依賴反轉</dt>
+        <dd>三者的關鍵差異都來自一件事：讓高層的業務邏輯依賴抽象介面，而不是依賴低層的實作。執行時的呼叫方向不變，原始碼的依賴方向反過來。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

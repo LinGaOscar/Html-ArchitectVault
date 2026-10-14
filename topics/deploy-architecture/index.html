@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>系統部署架構 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide dp-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>系統部署架構：單體式 vs 模組化單體 vs 微服務</h1>
+    <section class="lesson-intro">
+      <p>系統要拆成幾個獨立部署的單元，決定了擴充、故障、上線各自的影響範圍。單體式把所有功能放在一個程式裡；微服務把每個功能拆成獨立服務；模組化單體介於兩者之間，程式碼照模組切開、但仍一起部署。拆得越細越有彈性，也越要付出網路和分散式交易的代價。</p>
+      <p class="lesson-watch">虛線框是部署單元，同一個框裡的東西一起擴充、一起掛掉、一起重新部署。留意每個事件裡被波及的方塊有幾個，以及微服務在「一次下單」時多出來的網路呼叫和分散式交易。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>單體式（Monolith）</dt>
+        <dd>開發、測試、部署、除錯都最簡單，模組間呼叫是函式呼叫，交易一個資料庫就搞定。規模變大後，模組互相直接引用、共用資料表，越來越難改也難拆；擴充、部署、故障都是整包一起。</dd>
+        <dt>模組化單體（Modular Monolith）</dt>
+        <dd>仍是一個部署單元，但模組只透過公開介面溝通、各自擁有資料表。保留單體的簡單，又讓邊界清楚；哪天真的需要，某個模組可以比較容易地拆成服務。</dd>
+        <dt>微服務（Microservices）</dt>
+        <dd>每個服務獨立部署、獨立擴充、故障隔離，適合多團隊各自交付。代價是網路延遲與失敗、跨服務資料一致性（Saga、最終一致）、監控追蹤與維運的成本。</dd>
+        <dt>怎麼選</dt>
+        <dd>先從單體或模組化單體開始，等到團隊規模、部署頻率或負載差異真的需要時，再把邊界清楚的模組拆成服務。沒有清楚的邊界就拆微服務，常會得到「分散式的單體」：既要一起部署，又多了網路的問題。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

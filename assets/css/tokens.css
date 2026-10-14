@@ -16,6 +16,7 @@
   --bs-success: #4EE0C1;
   --bs-warning: #E0B24E;
   --bs-danger: #E06B5B;
+  --bs-purple: #B48EF0; /* 架構圖裡的測試程式與假物件 */
 
   --bs-border-radius-sm: 4px;
   --bs-border-radius: 8px;

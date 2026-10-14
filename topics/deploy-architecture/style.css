@@ -1,0 +1,9 @@
+/* 系統部署主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的規則說明長短不一，桌機並排時固定高度，下面的架構圖才對得齊 */
+.dp-page .dg-rule { min-height: 5.6em; }
+/* 模組之間的呼叫箭頭是橫向的，欄距要夠寬，箭頭（尤其是拆服務時被切斷的紅線）才看得見 */
+.dp-page .dg-diagram { column-gap: 34px; }
+@media (max-width: 760px) {
+  .dp-page .dg-rule { min-height: 0; }
+  .dp-page .dg-diagram { column-gap: 26px; }
+}

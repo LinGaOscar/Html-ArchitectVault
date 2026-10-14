@@ -49,6 +49,16 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - 數值變化以 `<span class="delta"><s>舊</s> → <b>新</b></span>` 顯示並呼叫 `pop()`。
 - 特效：`flyTo()` 會自動加上飛行發光、拖尾分身（`.fx-ghost`）與落地光環（`.fx-ring`），`pop()` 會加發光。狀態強調一律用 `base.css` 的共用 keyframes：`fx-pulse`（等待決定）、`fx-impact`（結果落定）、`fx-shake`（被拒絕／出錯）、`fx-bump`、`fx-wire-flow`（連接線流動）。特效顏色由 CSS 變數 `--fx-c` 決定，在元素上覆寫成歸屬色或警示色。已用 `transform` 定位的元素不可套用含 `transform` 的動畫（`fx-shake`、`fx-bump`）。
 
+### 架構比較主題：共用架構圖引擎
+
+`app-architecture`、`ui-patterns`、`deploy-architecture`、`cqrs` 四個主題的畫面都是「方塊 + 依賴箭頭 + 移動的請求」，畫法集中在共用模組，主題只提供資料：
+
+- `assets/js/engine/diagram.js`：`createDiagramRender({ systems, compare })` 回傳 `render`。每個 system 定義方塊（`nodes`，用 `cell` 指定格子、`ring` 決定顏色）、箭頭（`edges`，`kind` 為 `dep` 具體依賴、`iface` 介面依賴、`net` 網路呼叫、`bind` 資料綁定、`event` 事件）、外框（`groups`，部署單元或模組邊界）、token 與輸出區計數。主題的 `render.js` 只有一行呼叫它。
+- `assets/js/engine/graph.js`：純函式，從依賴圖推導「一次修改要改哪些既有元件」（`diffNodes`）與「測試要接哪些真實依賴、要幾個假物件」（`testNeeds`）。比較結論一律用它算，不手寫。
+- `assets/js/engine/archsim.js`：steps.js 用的模擬狀態與 `view()`，把每一拍的方塊狀態（`active`、`changed`、`new`、`needed`、`mocked`、`broken`、`deploy`、`stale`、`ok`…）拍成 diagram.js 要的資料。
+- `assets/css/diagram.css`：架構圖共用樣式，方塊狀態會在右上角顯示文字標籤（要改、新增、綁住、假的、停擺…），不只靠顏色。
+- 箭頭會被方塊遮住，安排 `cell` 時要避免箭頭從不相干的方塊後面穿過，否則會被誤讀成那個方塊的依賴。
+
 ### 每個主題共同的教學結構
 
 - 畫面分成「輸入 → 處理 → 輸出」三段（共用 class `.flow` / `.flow-col`）。
@@ -61,7 +71,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 - `assets/css/tokens.css`：顏色、間距、圓角變數（Bootstrap 風格命名、深色主題）。色值與尺寸一律引用這些變數。
 - `assets/css/base.css`：全站共用，包含播放器外殼、`.chip`、`.delta`、`.flow`、`.topic-page-wide`、教學文字區塊。`.stage` 用 `order: 1` 排在說明文字與控制列之後。
-- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`）。
+- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-` 作為頁面 class，共用架構圖用 `dg-`）。
 - 手機版斷點是 `max-width: 760px`。並排的面板在手機上仍維持並排（或改成面板直排、面板內橫排），做法是縮小字與格子；放不下的文字同時輸出長短兩版，用 `*-wide` / `*-narrow` class 切換。390px 寬時頁面與舞台都不可橫向捲動。
 
 ### 其他目錄
