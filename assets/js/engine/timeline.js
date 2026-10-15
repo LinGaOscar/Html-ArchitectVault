@@ -5,7 +5,7 @@ import { statsHtml, collectStats, setStat, summaryHtml, collectSummary, syncComp
 // 時間游標每一步往右推進，橫條跟著游標長出來；橫條是常駐元素（依 id 第一次出現時建立，之後只改位置與寬度），
 // 倒退或跳步時一樣只憑這一步的資料就畫得出完整狀態。
 //
-// system: { id, title, short?, rule, code?, processLabel, stats: [{ id, label }] }
+// system: { id, title, short?, langs?, rule, code?, processLabel, stats: [{ id, label }] }；langs 是哪些語言用這種做法
 // legend: 圖例要列的 tone；可以寫 'net'（用預設說明）或 { tone: 'net', label: '主題自己的說法' }
 // 每一步每個面板的 view: {
 //   action, verdict, wires: { in, out },
@@ -39,6 +39,7 @@ export function createTimelineRender({ systems, compare, maxLanes, legend }) {
     return `
       <article class="dg-panel tl-panel" data-sys="${sys.id}">
         <h3 class="dg-title">${sys.title}</h3>
+        ${sys.langs ? `<p class="dg-langs">常見於：${sys.langs}</p>` : ''}
         <p class="dg-rule">${sys.rule}</p>
         ${sys.code ? `<pre class="snippet dg-code">${sys.code}</pre>` : ''}
         <div class="dg-scene">

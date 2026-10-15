@@ -1,0 +1,23 @@
+/* 記憶體回收主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的記憶體圖才對得齊 */
+.gc-page .dg-langs { min-height: 2.7em; }
+.gc-page .dg-rule { min-height: 5.6em; }
+.gc-page .dg-code { min-height: calc(4.5em + 2 * var(--bs-spacer-2) + 2px); }
+
+/* 每塊資料的回收狀態：標籤直接寫出「它現在怎麼了」，不靠顏色猜 */
+.gc-page .dg-node[data-state="garbage"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); border-style: dashed; opacity: .75; animation: fx-pulse 1.4s ease-in-out infinite; }
+.gc-page .dg-node[data-state="garbage"]::after { content: "等回收"; }
+.gc-page .dg-node[data-state="leak"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 16%, var(--bs-secondary-bg)); animation: fx-impact .8s ease-out forwards; }
+.gc-page .dg-node[data-state="leak"]::after { content: "洩漏"; }
+.gc-page .dg-node[data-state="freed"] { --fx-c: var(--bs-success); border-style: dashed; opacity: .4; transform: scale(.92); }
+.gc-page .dg-node[data-state="freed"]::after { content: "已回收"; }
+.gc-page .dg-node[data-state="dangling"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); border-style: dashed; opacity: .7; animation: fx-pulse .9s ease-in-out infinite; }
+.gc-page .dg-node[data-state="dangling"]::after { content: "已歸還，還被指著"; }
+.gc-page .dg-node[data-state="crash"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 24%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-shake .45s ease-out; }
+.gc-page .dg-node[data-state="crash"]::after { content: "讀到亂碼"; }
+.gc-page .dg-node[data-state="marked"] { --fx-c: var(--bs-success); border-color: var(--bs-success); }
+.gc-page .dg-node[data-state="marked"]::after { content: "還在用"; }
+.gc-page .dg-node[data-state="active"]::after { content: "使用中"; }
+@media (max-width: 760px) {
+  .gc-page .dg-rule, .gc-page .dg-code { min-height: 0; }
+}

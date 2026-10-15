@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>錯誤怎麼往上傳 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide eh-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>錯誤怎麼往上傳：拋出例外 vs 回傳錯誤值 vs Result 型別</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>網站顯示「商品已售完」，客服查了半天才發現其實是資料庫連不上；或是一個小錯誤沒人處理，整個程式直接當掉。</p>
+        <p><b>打個比方</b>工廠產線最底層的機器壞了，消息要怎麼傳到店面？拋出例外像是按下緊急鈴，直接響到店長桌上；回傳錯誤值像是每一站的組長都要親手把紙條往上遞；Result 像是規定每個包裹都附一張「成功／失敗」單，沒簽收就不准往下做。</p>
+        <p><b>這頁比較</b>程式出錯時，三種把錯誤一路送回最上層的方式，以及有人忘了處理時各會怎樣。</p>
+      </div>
+      <p>一個功能通常是好幾層程式一層呼叫一層：API 呼叫服務、服務呼叫資料庫。最底層出錯時，錯誤要一路回到最上層，才能決定要告訴使用者什麼、要不要記錄下來。各語言的做法不同：Java、Python、JavaScript 用「拋出例外」，Go 把錯誤當成普通的回傳值，Rust 用 Result 型別。平常看不出差別，差別出現在「有人忘了處理」的時候。</p>
+      <p class="lesson-watch">每個面板是同一條呼叫鏈：下單 API → 下單服務 → 庫存檢查 → 資料庫。紅色的小標籤是錯誤，方塊右上角寫著這一層對錯誤做了什麼（跳過、檢查錯誤、往上傳、接住）。留意第二段「忘了處理」時，哪一種做法讓使用者看到錯的訊息。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>拋出例外（Exception）</dt>
+        <dd>出錯時「丟出」一個例外，程式立刻停下手上的事，一路往上找最近的 catch。中間層完全不用寫錯誤處理，程式最乾淨；忘了處理也會自己往上跑，最上層有接住就不會出事。缺點是讀程式時看不出哪一行可能出錯；有人寫了空的 catch，錯誤就被悄悄吞掉。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>大部分錯誤中間層其實無能為力（資料庫掛了，庫存檢查也沒辦法），與其每層都寫「出錯就往上傳」，不如讓錯誤自動往上跑，集中在最上層處理。這讓一般的流程程式保持簡潔。</dd>
+        <dt>回傳錯誤值（Go、C）</dt>
+        <dd>錯誤是函式的普通回傳值，每一層呼叫完都要自己寫「有沒有出錯？有就往上傳」。錯誤走哪條路一目了然，沒有隱藏的跳躍。代價是程式變長；更大的問題是忘了檢查時編譯器不會提醒，程式拿著空值繼續做，錯誤就在那裡消失了。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>Go 的設計者認為例外讓錯誤的流向變得看不見，程式難以推理；把錯誤當成普通的值，逼大家在每個呼叫點都正視「這裡可能失敗」。用多寫幾行換取清楚。</dd>
+        <dt>Result 型別（Rust；Swift、Kotlin 類似）</dt>
+        <dd>函式回傳一個「成功的值或錯誤」二選一的盒子，不打開處理就拿不到裡面的值，忘了處理編譯器直接擋下。往上傳只要寫一個 ?，跟例外一樣簡潔，又跟錯誤值一樣看得見。代價是要多學一套寫法。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>它想同時拿到前兩者的優點：錯誤看得見（寫在型別上），又不用每層重複寫一大段；最重要的是把「忘了處理」從上線後才發現的 bug，變成寫程式時就過不了的編譯錯誤。</dd>
+        <dt>不管哪種語言都適用的原則</dt>
+        <dd>錯誤要嘛處理，要嘛往上傳，不可以默默吞掉；處理錯誤的那一層要記錄下來（log），並給使用者一個說得通的訊息。用例外的語言，避免寫空的 catch；用錯誤值的語言，打開編譯器或檢查工具的「未處理錯誤」警告。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

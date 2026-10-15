@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>Race Condition - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide rc-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>Race Condition：不加鎖 vs 加鎖 vs 原子操作</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>熱門貼文明明有很多人按讚，數字卻比實際少；限量商品明明只剩一件，卻賣給了兩個人。</p>
+        <p><b>打個比方</b>兩個店員共用一本庫存簿。兩人同時看到「剩 10 件」，各賣出一件後都寫上「剩 9 件」，簿子上就少扣了一件。加鎖像是規定「拿到簿子的人才能改」；原子操作像是改用一台按一下就自動減一的計數器。</p>
+        <p><b>這頁比較</b>好幾個工人同時改同一個數字時，三種避免改錯的寫法。</p>
+        <p class="lesson-prereq">建議先看：<a href="../concurrency/index.html">同時處理很多請求</a></p>
+      </div>
+      <p>在程式裡，「把數字加一」看起來是一行，其實是三步：讀出目前的值、加一、寫回去。只有一個工人時沒問題；但伺服器同時處理很多請求（見「同時處理很多請求」），兩個工人的三步就可能交錯，後寫的人把先寫的人的結果蓋掉。這種「結果取決於誰先誰後」的錯誤叫 Race Condition，每種語言都會遇到，而且不是每次都發生，特別難抓。</p>
+      <p class="lesson-watch">每個面板有四條泳道：工人 A、工人 B、鎖在誰手上，以及共用的按讚數。灰色是處理請求、藍色是讀出按讚數、紫色是加一、綠色是寫回、黃色斜紋是在等鎖。留意不加鎖的面板裡，兩個工人「讀到」的數字是不是一樣，以及按讚數最後是不是 16。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>不加鎖</dt>
+        <dd>每個工人直接讀、改、寫。只要兩個人的步驟交錯，就會讀到同一個舊值，其中一次修改被蓋掉。錯誤只在剛好同時發生時出現，測試時常常抓不到，上線後流量一大才冒出來。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>加鎖要花時間、寫起來也麻煩；只有一個工人會改的資料（例如只在單一執行緒裡用的變數），本來就不需要。問題是開發時常沒意識到「這份資料其實有好幾個人在改」。</dd>
+        <dt>加鎖（Lock、Mutex）</dt>
+        <dd>要改之前先拿到鎖，改完才放開。同一時間只有一個人能進去改，結果一定正確。代價是其他人要排隊；鎖拿太久會讓大家變慢，兩個人各拿一把鎖又互等對方，就會永遠卡住（死結）。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>一次要改好幾個相關的值（例如從 A 帳戶扣錢、B 帳戶加錢），必須保證中間沒人插隊，鎖是最通用的做法。所有語言都提供：Java 的 synchronized、Go 的 sync.Mutex、Python 的 threading.Lock。</dd>
+        <dt>原子操作（Atomic）</dt>
+        <dd>把「加一」交給硬體或資料庫一步做完，中間不可能被插隊，也不用排隊拿鎖，最快。但只能做簡單的動作，例如加減一個數字、「如果還是舊值就換成新值」。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>CPU 本來就提供「讀改寫一次完成」的指令，用它來做計數器比整套鎖輕得多。資料在資料庫裡時也一樣：寫 UPDATE … SET likes = likes + 1，讓資料庫一步完成，而不是在程式裡讀出來加一再寫回去。</dd>
+        <dt>Event Loop 也會遇到</dt>
+        <dd>JavaScript 只有一個主執行緒，一般的程式不會被插隊；但只要中間有 await（例如先讀資料庫、等回來再寫回），等待的空檔就可能有別的請求插進來改同一筆資料。資料在資料庫時，最可靠的做法還是交給資料庫處理（原子更新或交易）。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+/* 複製 vs 共用主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的指向圖才對得齊 */
+.vr-page .dg-langs { min-height: 2.7em; }
+.vr-page .dg-rule { min-height: 5.6em; }
+.vr-page .dg-code { min-height: calc(4.5em + 2 * var(--bs-spacer-2) + 2px); }
+
+/* 資料的狀態：被改了、被意外改到、兩份共用 */
+.vr-page .dg-node[data-state="edited"] { --fx-c: var(--bs-info); border-color: var(--bs-info); animation: fx-impact .7s ease-out forwards; }
+.vr-page .dg-node[data-state="edited"]::after { content: "改了"; }
+.vr-page .dg-node[data-state="surprise"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 16%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-shake .45s ease-out; }
+.vr-page .dg-node[data-state="surprise"]::after { content: "被意外改到"; }
+.vr-page .dg-node[data-state="shared"] { --fx-c: var(--bs-success); border-color: var(--bs-success); }
+.vr-page .dg-node[data-state="shared"]::after { content: "兩版共用"; }
+@media (max-width: 760px) {
+  .vr-page .dg-rule, .vr-page .dg-code { min-height: 0; }
+}

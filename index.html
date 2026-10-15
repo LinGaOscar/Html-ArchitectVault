@@ -95,11 +95,35 @@
     </section>
 
     <section class="topic-section">
-      <h2>深入篇<small>程式在電腦裡實際怎麼跑，需要一點程式基礎</small></h2>
+      <h2>程式觀念篇<small>每種程式語言都會遇到的共通觀念</small></h2>
       <div class="topic-grid">
+        <a class="topic-card" href="./topics/concurrency/">
+          <h3>同時處理很多請求</h3>
+          <p>Event Loop / 多執行緒 / 多行程：一個工人輪流做，還是很多工人一起做</p>
+        </a>
+        <a class="topic-card" href="./topics/race-condition/">
+          <h3>Race Condition</h3>
+          <p>兩個人同時改同一個數字：不加鎖 / 加鎖 / 原子操作</p>
+        </a>
+        <a class="topic-card" href="./topics/error-handling/">
+          <h3>錯誤怎麼往上傳</h3>
+          <p>例外 / 錯誤值 / Result：有人忘了處理時會怎樣</p>
+        </a>
+        <a class="topic-card" href="./topics/value-reference/">
+          <h3>複製 vs 共用</h3>
+          <p>「b = a」是複製一份，還是指著同一份</p>
+        </a>
+        <a class="topic-card" href="./topics/money-precision/">
+          <h3>金額計算</h3>
+          <p>為什麼 0.1 加十次不等於 1，金額該怎麼存</p>
+        </a>
         <a class="topic-card" href="./topics/stack-vs-heap/">
           <h3>Stack vs Heap</h3>
           <p>程式執行時，資料放在記憶體的哪裡</p>
+        </a>
+        <a class="topic-card" href="./topics/memory-gc/">
+          <h3>記憶體回收</h3>
+          <p>手動釋放 / 參考計數 / 垃圾回收：用完的記憶體何時還回去</p>
         </a>
       </div>
     </section>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>記憶體回收 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide gc-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>記憶體回收：手動釋放 vs 參考計數 vs 垃圾回收</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>伺服器剛重開時很順，跑了幾天記憶體越吃越多，最後當掉，只好半夜定時重開；或是服務平常很快，偶爾卻莫名其妙卡個幾十毫秒。</p>
+        <p><b>打個比方</b>圖書館的書什麼時候可以收回書庫？手動釋放是讀者自己記得還書；參考計數是每本書夾一張「目前有幾個人在看」的卡，歸零就收回；垃圾回收是館員定時巡一圈，沒人拿著的書通通收回，巡的時候大家要先停一下。</p>
+        <p><b>這頁比較</b>程式用完的記憶體，三種「什麼時候還回去」的方式，以及各自會出什麼錯。</p>
+        <p class="lesson-prereq">建議先看：<a href="../stack-vs-heap/index.html">Stack vs Heap</a></p>
+      </div>
+      <p>程式執行時會不斷向系統要記憶體來放資料（見 Stack vs Heap 裡的 Heap）。用完要還，否則記憶體越用越少；但還早了，別人還在用就會出錯。C 讓程式設計師自己決定什麼時候還；Python、Swift 讓每塊資料自己記著「還有幾個人在用」；Java、Go、JavaScript 則交給垃圾回收器定期巡視。三種方式在三個常見情境下的表現很不一樣。</p>
+      <p class="lesson-watch">上排是程式正在用的地方（函式裡的變數、名單），下面是記憶體裡的資料，箭頭代表「還有人指著這塊資料」。方塊右上角寫著它的狀態：使用中、等回收、已回收、洩漏、已歸還還被指著。留意第二段互相指著的那一圈，以及第三段兩個地方共用的那一塊。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>手動釋放（C、C++）</dt>
+        <dd>程式設計師自己決定什麼時候 free。不需要額外的機制，也沒有暫停，效能最好、最可預測。但兩種錯誤都很常見：忘了還（洩漏，程式跑越久吃越多記憶體）、還得太早（別人還在用，讀到亂碼甚至當機，而且不一定每次發生）。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>作業系統、遊戲引擎、嵌入式設備需要精準控制每一塊記憶體、不能接受任何暫停。C++ 後來加了「智慧指標」，讓指著資料的變數消失時自動釋放，減少人工出錯；Rust 則在編譯時檢查「誰擁有這塊記憶體」。</dd>
+        <dt>參考計數（Python、Swift、PHP）</dt>
+        <dd>每塊資料記著「有幾個地方指著我」，數字歸零的那一刻立刻回收。不需要停下整個程式，記憶體也釋放得很即時。弱點是互相指著的一圈資料：彼此的數字永遠停在 1，沒人用了也收不回來。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>即時、可預測：資料一沒人用就馬上釋放，適合手機這種記憶體有限、又不希望畫面卡頓的環境（Swift）。互相指著的問題另外處理：Swift 要程式設計師把其中一邊標成「弱參照」，Python 另外跑一個專門找這種圈的回收器。</dd>
+        <dt>追蹤式垃圾回收（Java、Go、JavaScript、C#）</dt>
+        <dd>回收器每隔一陣子從「程式正在用的變數」出發，順著指向走一遍，走不到的全部回收。程式設計師完全不用管，互相指著也不怕。代價是回收時程式要暫停一下，記憶體也要等到下次巡視才釋放，平常會多佔一些。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>把「什麼時候可以還」這個最容易出錯的判斷完全交給機器，換來開發速度和安全。現代的回收器已經能把暫停壓到一毫秒以下，大部分網站和後端服務都承受得起。</dd>
+        <dt>不管用哪種語言</dt>
+        <dd>還是可能洩漏：只要一直有人指著，就不會被回收。最常見的是放進全域的快取或名單後忘了移除、註冊了事件監聽卻沒取消。記憶體一直往上長時，先找「誰還指著它」。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

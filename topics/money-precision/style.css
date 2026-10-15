@@ -1,0 +1,14 @@
+/* 金額計算主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的流程圖才對得齊 */
+.mp-page .dg-langs { min-height: 2.7em; }
+.mp-page .dg-rule { min-height: 5.6em; }
+.mp-page .dg-code { min-height: calc(6em + 2 * var(--bs-spacer-2) + 2px); }
+/* 方塊裡的小字是電腦實際算出的數字，用等寬字才看得出每一位 */
+.mp-page [data-node="calc"] .dg-note { font-family: var(--bs-font-monospace); overflow-wrap: anywhere; }
+.mp-page [data-node="total"] .dg-note, .mp-page [data-node="expect"] .dg-note { font-size: .875rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+.mp-page .dg-node[data-state="wrong"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 16%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-shake .45s ease-out; }
+.mp-page .dg-node[data-state="wrong"]::after { content: "對不起來"; }
+@media (max-width: 760px) {
+  .mp-page .dg-rule, .mp-page .dg-code { min-height: 0; }
+  .mp-page [data-node="total"] .dg-note, .mp-page [data-node="expect"] .dg-note { font-size: .75rem; }
+}

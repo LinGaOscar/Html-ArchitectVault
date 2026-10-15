@@ -3,6 +3,8 @@
 .dg-panels { display: grid; grid-template-columns: repeat(var(--panels), minmax(0, 1fr)); gap: var(--bs-spacer-3); }
 .dg-panel { min-width: 0; }
 .dg-title { margin: 0; font-size: 1.0625rem; }
+/* 跨語言的觀念主題：標出哪些語言用這種做法，讀者用自己熟的語言就能對上 */
+.dg-langs { margin: 2px 0 0; color: var(--bs-info); font-size: .75rem; line-height: 1.35; }
 .dg-rule { min-height: 4.2em; margin: var(--bs-spacer-1) 0 var(--bs-spacer-2); color: var(--bs-secondary-color); font-size: .8125rem; }
 .dg-code { font-size: .75rem; }
 .dg-scene { position: relative; }
@@ -260,6 +262,7 @@
   .dg-panel .flow-col h4 small { display: none; }
   .dg-title { font-size: .9375rem; }
   .dg-rule { min-height: 0; font-size: .6875rem; }
+  .dg-langs { min-height: 0 !important; font-size: .625rem; }
   .dg-code { font-size: .625rem; }
   .dg-panel .flow { gap: 18px; }
   .dg-panel .flow-col { padding: var(--bs-spacer-1); }

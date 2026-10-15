@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>同時處理很多請求 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide cc-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>同時處理很多請求：Event Loop vs 多執行緒 vs 多行程</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>網站平常很順，某天有人按了「匯出年度報表」，結果所有人的頁面一起轉圈圈；或是伺服器記憶體明明很大，卻只撐得住幾個人同時連線。</p>
+        <p><b>打個比方</b>一間餐廳怎麼服務很多桌客人：只請一個很機靈的服務生，客人看菜單時他先去招呼別桌（Event Loop）；每桌配一個服務生（多執行緒）；或乾脆開好幾間一模一樣的分店（多行程）。</p>
+        <p><b>這頁比較</b>三種讓伺服器「同時」處理很多請求的做法，每種程式語言都會選其中一種當預設。</p>
+      </div>
+      <p>伺服器一次會收到很多請求，大部分請求的時間其實花在「等」：等資料庫、等別的服務回應。怎麼利用等待的空檔去處理別人，每種語言的答案不同：JavaScript 用一個主執行緒輪流處理，Java 和 Go 替每個請求開一條執行緒，Python 和 PHP 常見的做法是啟動好幾份程式。選擇不同，伺服器在「大量等待」和「重計算」時的表現差很多。</p>
+      <p class="lesson-watch">每個面板有一條條泳道，每條是一個請求：藍色是在等資料庫、綠色是在計算、黃色斜紋是沒有空的工人只能排隊、紅色斜紋是被別的請求卡住。三種做法用一樣多的記憶體。留意第二段那個算很久的報表進來後，哪一種做法的查詢全部被拖慢。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>Event Loop（單一主執行緒）</dt>
+        <dd>只有一個工人。遇到要等的事（資料庫、網路）就先登記「好了叫我」，轉身處理下一個請求，所以一個工人就能同時照顧成千上萬個在等待的請求，非常省記憶體。缺點是計算一次只能做一件：只要有一段程式算很久，所有人都得等它算完。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>網站伺服器大部分時間在等資料庫和網路，真正在算的時間很少。與其開一大堆工人陪著乾等，不如讓一個工人在等待的空檔不停切換。它也避開了多個工人同時改同一份資料的麻煩。重計算則交給背景工作或另外的執行緒。</dd>
+        <dt>多執行緒</dt>
+        <dd>每個請求分到一條執行緒，各做各的；計算可以同時在多個 CPU 核心上跑，一個慢的請求不會卡住別人。執行緒比整份程式輕很多，同樣的記憶體可以開很多條。代價是所有執行緒共用同一份資料，兩條同時去改就可能互相蓋掉，要自己加鎖。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>程式照「一步一步往下做」的直覺寫法就好，等待時卡住的只是自己這條執行緒，不用改寫成非同步。多核心 CPU 也能充分利用。Go 的 goroutine 更進一步，把執行緒做得極輕，一台機器可以開幾十萬條。</dd>
+        <dt>多行程</dt>
+        <dd>啟動好幾份完全一樣的程式，每份是一個獨立的工人，記憶體互不相通。一個工人當掉或卡住，其他工人照常服務，管理程式會自動補一個新的。代價是每份都要一整份記憶體，同樣預算開不了幾個，同時能處理的請求數因此受限；要共用資料就得透過資料庫或快取。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>有些語言（例如 Python 的 GIL）同一時間只讓一條執行緒跑程式，多執行緒用不到多個 CPU 核心；開多份程式是最簡單、最穩的繞法。完全隔開也代表一個請求出事，不會拖垮整台伺服器。</dd>
+        <dt>實務上常混著用</dt>
+        <dd>Node.js 會開好幾份程式（每個 CPU 核心一份），每份裡面跑 Event Loop；Java 會用固定大小的執行緒池，不無限開；Python 常是多份程式，每份裡再跑非同步。看懂這三種基本形狀，就看得懂各種伺服器的設定。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

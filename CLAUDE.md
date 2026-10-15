@@ -51,18 +51,18 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 
 ### 架構比較主題：共用架構圖引擎
 
-`app-architecture`、`ui-patterns`、`deploy-architecture`、`cqrs` 四個主題的畫面都是「方塊 + 依賴箭頭 + 移動的請求」，畫法集中在共用模組，主題只提供資料：
+`app-architecture`、`ui-patterns`、`deploy-architecture`、`cqrs` 四個主題的畫面都是「方塊 + 依賴箭頭 + 移動的請求」，畫法集中在共用模組，主題只提供資料。程式觀念篇的 `error-handling`、`memory-gc`、`value-reference`、`money-precision` 也用同一套（箭頭改代表呼叫、指向或金額流向）：
 
-- `assets/js/engine/diagram.js`：`createDiagramRender({ systems, compare })` 回傳 `render`。每個 system 定義方塊（`nodes`，用 `cell` 指定格子、`ring` 決定顏色）、箭頭（`edges`，`kind` 為 `dep` 具體依賴、`iface` 介面依賴、`net` 網路呼叫、`bind` 資料綁定、`event` 事件）、外框（`groups`，部署單元或模組邊界）、token 與輸出區計數。主題的 `render.js` 只有一行呼叫它。
+- `assets/js/engine/diagram.js`：`createDiagramRender({ systems, compare, labels? })` 回傳 `render`；`labels: { kinds, rings }` 換掉圖例的預設說法（箭頭不代表依賴時一定要換）。每個 system 定義方塊（`nodes`，用 `cell` 指定格子、`ring` 決定顏色）、箭頭（`edges`，`kind` 為 `dep` 具體依賴、`iface` 介面依賴、`net` 網路呼叫、`bind` 資料綁定、`event` 事件）、外框（`groups`，部署單元或模組邊界）、token 與輸出區計數。主題的 `render.js` 只有一行呼叫它。
 - `assets/js/engine/graph.js`：純函式，從依賴圖推導「一次修改要改哪些既有元件」（`diffNodes`）與「測試要接哪些真實依賴、要幾個假物件」（`testNeeds`）。比較結論一律用它算，不手寫。
 - `assets/js/engine/archsim.js`：steps.js 用的模擬狀態與 `view()`，把每一拍的方塊狀態（`active`、`changed`、`new`、`needed`、`mocked`、`broken`、`deploy`、`stale`、`ok`…）拍成 diagram.js 要的資料。
-- `assets/css/diagram.css`：架構圖共用樣式，方塊狀態會在右上角顯示文字標籤（要改、新增、綁住、假的、停擺…），不只靠顏色。
+- `assets/css/diagram.css`：架構圖共用樣式，方塊狀態會在右上角顯示文字標籤（要改、新增、綁住、假的、停擺…），不只靠顏色。主題專屬的狀態（例如記憶體回收的「洩漏」「等回收」）寫在主題的 `style.css`，照同樣的 `[data-state]::after { content }` 寫法加上頁面 class 前綴。
 - diagram.js 會自動產生：舞台頂端的圖例（只列主題用到的箭頭與顏色）；手機版黏在舞台頂端的比較摘要（各方案的 `stats` 並排）；「不同」標記（某個計數這一拍剛變動、多數方案一致而只有一個不同時，標出那個面板）。對照表的列加上 `better: 'low' | 'high'` 就會把數字畫成長條並標出最好、最差。
 - 箭頭會被方塊遮住，安排 `cell` 時要避免箭頭從不相干的方塊後面穿過，否則會被誤讀成那個方塊的依賴。
 
 ### 時間軸主題：共用時間軸引擎
 
-`api-sync-async`、`long-task`、`tx-isolation`、`db-replication`、`resilience` 比較的是「同一段時間裡誰在等、誰被卡住、資料何時到哪裡」，用甘特圖式的時間軸呈現：
+`api-sync-async`、`long-task`、`tx-isolation`、`db-replication`、`resilience`、`concurrency`、`race-condition` 比較的是「同一段時間裡誰在等、誰被卡住、資料何時到哪裡」，用甘特圖式的時間軸呈現：
 
 - `assets/js/engine/timeline.js`：`createTimelineRender({ systems, compare, maxLanes, legend })`。每一步的 view 給 `span`、`unit`、時間游標 `t`、泳道 `lanes`、橫條 `bars`（`tone` 決定顏色：`block` 卡住、`work`、`net`、`conn`、`job`、`abort`、`err`、`read`、`write`、`wait`、`repl`、`ok`）。`legend` 可以寫 tone 名稱用預設說明，或寫 `{ tone, label }` 換成主題自己的說法與瞬間標記 `marks`。橫條依 id 建立後常駐，游標推進時跟著長出來；只有往後一步才播生長轉場，倒退與跳步直接定格。
 - 同一條泳道上相鄰的標記文字會疊在一起，標記要分散到不同泳道或縮短文字；標記在時間軸右半邊時文字自動往左長。
@@ -91,7 +91,7 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 - `assets/css/tokens.css`：顏色、間距、圓角變數（Bootstrap 風格命名）。預設深色，`:root[data-scheme="light"]` 是淺色版，只換色值不換變數名稱。色值與尺寸一律引用這些變數，不可寫死顏色，否則切到淺色會壞掉。
 - `assets/js/theme.js`：每一頁在 `<head>` 用一般 `<script>`（不是 module）同步載入，在第一次繪製前設好 `data-scheme`，並在 `main` 右上角插入深淺色開關；選擇存在 localStorage，沒選過就跟隨作業系統。用 `data-scheme` 而不是 `data-theme`，是因為 artifact 的外框會在頁面根元素設自己的 `data-theme`。新增頁面要記得加這個 script。
 - `assets/css/base.css`：全站共用，包含播放器外殼、`.chip`、`.delta`、`.flow`、`.topic-page-wide`、教學文字區塊。`.stage` 用 `order: 1` 排在說明文字與控制列之後。
-- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-`，時間軸主題用 `as-`、`lt-`、`ti-`、`rp-`、`rs-` 作為頁面 class；共用架構圖用 `dg-`，共用時間軸用 `tl-`）。
+- `topics/<主題>/style.css`：主題專屬樣式，class 一律加主題前綴（`lb-`、`sj-`、`sh-`、`cs-`、`ch-`、`mq-`；架構比較主題用 `ar-`、`ui-`、`dp-`、`cq-`，時間軸主題用 `as-`、`lt-`、`ti-`、`rp-`、`rs-`、`cc-`、`rc-` 作為頁面 class；程式觀念篇的架構圖主題用 `eh-`、`gc-`、`vr-`、`mp-`；共用架構圖用 `dg-`，共用時間軸用 `tl-`）。
 - 手機版斷點是 `max-width: 760px`。並排的面板在手機上仍維持並排（或改成面板直排、面板內橫排），做法是縮小字與格子；放不下的文字同時輸出長短兩版，用 `*-wide` / `*-narrow` class 切換。390px 寬時頁面與舞台都不可橫向捲動。
 
 ### 其他目錄
@@ -102,5 +102,5 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 ## 慣例
 
 - 文字與註解用繁體中文，技術名詞保留英文；註解寫「為什麼」（教學上的理由），不寫「做了什麼」。
-- 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。首頁依「這一篇回答什麼問題」分篇，由讀者最容易接觸到的排到最底層：通訊篇（元件之間怎麼溝通）、資料篇（資料怎麼查、怎麼放、怎麼保持一致）、擴展與可靠性篇（流量變大、出錯時怎麼撐住）、架構篇（程式碼和系統怎麼組織）、深入篇（程式在電腦裡實際怎麼跑，記憶體這類需要程式基礎的主題）。每篇至少三個主題。
+- 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。首頁依「這一篇回答什麼問題」分篇，由讀者最容易接觸到的排到最底層：通訊篇（元件之間怎麼溝通）、資料篇（資料怎麼查、怎麼放、怎麼保持一致）、擴展與可靠性篇（流量變大、出錯時怎麼撐住）、架構篇（程式碼和系統怎麼組織）、程式觀念篇（每種程式語言都會遇到的共通觀念，例如並行、錯誤處理、記憶體；面板上要標出各方案是哪些語言的做法）。每篇至少三個主題。
 - 驗證：使用者在 artifact（https://claude.ai/artifact/3GcLHdu6GLwH1hj6WjMs4F）上看結果，不要跑本機瀏覽器測試（localhost）。改完只做 `node --check` 與 steps 資料檢查，再更新 artifact。artifact 的首頁是另外產生的版本，主題連結要寫成 `./topics/<名稱>/index.html`。

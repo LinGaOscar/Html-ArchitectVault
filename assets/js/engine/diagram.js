@@ -7,7 +7,7 @@ import { statsHtml, collectStats, setStat, summaryHtml, collectSummary, syncComp
 // 同一種箭頭在每個主題都代表同一件事，讀者學一次就能看懂全部。
 //
 // system: {
-//   id, title, rule, code?, processLabel, cols, rows,
+//   id, title, langs?, rule, code?, processLabel, cols, rows,             langs：哪些語言用這種做法（程式觀念篇）
 //   groups?: [{ id, name, area: [row, col, rowSpan, colSpan], kind? }], 外框；kind 'unit' 是部署單元，'boundary' 是程式碼裡的模組邊界
 //   nodes: [{ id, name, sub?, ring, cell: [row, col] }],            ring 決定顏色（core、app、adapter、infra、ui、test…）
 //   edges: [{ id, from, to, kind }],                                kind：dep 具體依賴、iface 介面依賴、net 網路呼叫、bind 資料綁定、event 事件
@@ -15,6 +15,7 @@ import { statsHtml, collectStats, setStat, summaryHtml, collectSummary, syncComp
 //   stats: [{ id, label }],                                         輸出區的計數
 // }
 // compare: { title, rows: [{ label, values, highlight?, better? }] }；better 為 'low' 或 'high' 時，該列的數字畫成長條並標出最好、最差
+// labels: { kinds?: { dep: '呼叫' }, rings?: { core: '業務邏輯' } }，換掉圖例的預設說法；箭頭不一定代表依賴（例如指向記憶體裡的資料）
 // 每一步每個面板的 view: { action, verdict, wires: { in, out }, nodes: { id: { show, state, note, badge } },
 //   edges: { id: { show, state } }, groups: { id: { state, badge } }, tokens: { id: { at, label } }, stats: { id: value } }
 
@@ -24,8 +25,10 @@ const KIND_MARK = { iface: 'h', dep: 'a', net: 'a', bind: 'a', event: 'a', call:
 const KIND_LABEL = { dep: '依賴具體類別', iface: '依賴介面（可替換）', net: '網路呼叫', bind: '資料綁定', event: '事件通知' };
 const RING_LABEL = { core: '核心邏輯', app: '應用 / 組裝', module: '功能模組', ui: '畫面元件', adapter: '轉接層', infra: '基礎設施', test: '測試' };
 
-export function createDiagramRender({ systems, compare }) {
+export function createDiagramRender({ systems, compare, labels = {} }) {
   let scene = null;
+  const kindLabel = { ...KIND_LABEL, ...labels.kinds };
+  const ringLabel = { ...RING_LABEL, ...labels.rings };
 
   // 英文類別名稱只在大小寫交界處斷行（Order<wbr>Service），窄欄位才不會把一個字從中間切開
   function nodeHtml(n) {
@@ -48,6 +51,7 @@ export function createDiagramRender({ systems, compare }) {
     return `
       <article class="dg-panel" data-sys="${sys.id}">
         <h3 class="dg-title">${sys.title}</h3>
+        ${sys.langs ? `<p class="dg-langs">常見於：${sys.langs}</p>` : ''}
         <p class="dg-rule">${sys.rule}</p>
         ${sys.code ? `<pre class="snippet dg-code">${sys.code}</pre>` : ''}
         <div class="dg-scene">
@@ -81,14 +85,14 @@ export function createDiagramRender({ systems, compare }) {
   }
 
   function legendHtml() {
-    const kinds = [...new Set(systems.flatMap((s) => s.edges.map((e) => e.kind)))].filter((k) => KIND_LABEL[k]);
-    const rings = [...new Set(systems.flatMap((s) => s.nodes.map((n) => n.ring)))].filter((r) => RING_LABEL[r]);
+    const kinds = [...new Set(systems.flatMap((s) => s.edges.map((e) => e.kind)))].filter((k) => kindLabel[k]);
+    const rings = [...new Set(systems.flatMap((s) => s.nodes.map((n) => n.ring)))].filter((r) => ringLabel[r]);
     const hasUnit = systems.some((s) => (s.groups || []).some((g) => (g.kind || 'unit') === 'unit'));
     const hasBoundary = systems.some((s) => (s.groups || []).some((g) => g.kind === 'boundary'));
     const line = (k) => `<svg viewBox="0 0 34 10" aria-hidden="true"><path class="dg-edge kind-${k}" d="M2 5 L26 5"></path><path class="dg-lhead${k === 'iface' ? ' is-hollow' : ''}" d="M25 1 L33 5 L25 9 z"></path></svg>`;
     return `<div class="dg-legend" aria-label="圖例">
-      ${kinds.map((k) => `<span>${line(k)}${KIND_LABEL[k]}</span>`).join('')}
-      ${rings.map((r) => `<span><i class="dg-ldot" data-ring="${r}"></i>${RING_LABEL[r]}</span>`).join('')}
+      ${kinds.map((k) => `<span>${line(k)}${kindLabel[k]}</span>`).join('')}
+      ${rings.map((r) => `<span><i class="dg-ldot" data-ring="${r}"></i>${ringLabel[r]}</span>`).join('')}
       ${hasUnit ? '<span><i class="dg-lbox"></i>部署單元</span>' : ''}
       ${hasBoundary ? '<span><i class="dg-lbox is-boundary"></i>模組邊界</span>' : ''}
     </div>`;

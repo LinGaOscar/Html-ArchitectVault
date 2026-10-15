@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>金額計算 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide mp-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>金額怎麼算才不會錯：浮點數 vs 整數分 vs Decimal</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>月底對帳，系統的總額跟銀行差了一分錢，查了一整天；或是三個人分攤帳單，加起來總是少一塊。</p>
+        <p><b>打個比方</b>用一把刻度只到「大約」的尺量布，量一次差一點點看不出來，量一千次就差很多。浮點數就是那把尺；整數分是改用「數格子」，一格就是一分錢，不會有半格；Decimal 是換一把刻度跟我們算數一樣的十進位尺。</p>
+        <p><b>這頁比較</b>程式裡存金額的三種方式，在加總、四捨五入、分攤時會不會出錯。</p>
+      </div>
+      <p>幾乎每種語言預設的小數都是「浮點數」（JavaScript 的 number、Python 的 float、Java 的 double）。它用二進位存數字，所以 0.1 這種十進位很簡單的數，在電腦裡只能存成一個非常接近、但不完全相等的值。平常看不出來，但金額要加總、要四捨五入、要對帳時，這一點點誤差就會冒出來。這是每種語言都有的現象，不是哪個語言的 bug。</p>
+      <p class="lesson-watch">每個面板是同一筆帳的流程：輸入 → 程式計算（方塊裡是電腦實際算出的數字）→ 帳上金額 → 跟正確答案對帳。留意浮點數「程式計算」那一格的數字，以及最後三人分攤時，哪一種做法加回來剛好是 $100.00。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>浮點數（float、double）</dt>
+        <dd>每種語言預設的小數，計算很快、範圍很大。但它用二進位存，0.1、0.2 這類數字只能存近似值：十個 0.1 加起來不等於 1，四捨五入可能因為「差一點點」進錯位。誤差平常藏在很後面的小數位，對帳和比大小時才出錯，所以金額絕對不要用它。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>它是為科學計算和圖形設計的：重視範圍大、速度快，誤差在很後面的位數無關緊要。硬體直接支援這種格式，所以語言都拿它當預設的小數。</dd>
+        <dt>整數存「分」</dt>
+        <dd>把金額換成最小單位的整數：$1.00 存成 100、新台幣元直接存整數。整數的加減乘完全精確；除法除不盡時，整數除法會留下明確的餘數，逼你決定那一分錢給誰。代價是要先決定最小單位，顯示時要換算，不同幣別的小數位數也不同。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>整數是所有語言、所有資料庫都精確支援的型別，不需要額外的函式庫，傳來傳去也不會走樣。Stripe 等金流服務的 API 都用最小單位的整數傳金額，就是為了讓每個系統算出來的數字都一樣。</dd>
+        <dt>Decimal 型別</dt>
+        <dd>用十進位存小數，算起來跟手算一樣精確，還能指定四捨五入的規則（四捨五入、銀行家捨入…）。適合利率、匯率這類需要很多位小數的計算。代價是比浮點數慢，寫法也比較囉嗦。除不盡時一樣要自己處理餘數，它不會幫你決定那一分錢給誰。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>會計和金融的規則是用十進位寫的（四捨五入到分、稅率 5%），用十進位的型別來算，結果才會跟法規、跟人工驗算一致。Java 的 BigDecimal、Python 的 decimal、資料庫的 DECIMAL 都是為這個目的設計的。</dd>
+        <dt>實務建議</dt>
+        <dd>金額存進資料庫用 DECIMAL 或整數欄位，不用 FLOAT；程式裡用整數分或 Decimal；四捨五入的時機和規則要寫清楚（每一筆先捨入，還是加總後再捨入）；分攤、折扣這類除法，一定要明確處理餘數，最後再檢查「加回來等於總額」。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

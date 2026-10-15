@@ -1,0 +1,32 @@
+/* 錯誤怎麼往上傳主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的呼叫鏈才對得齊 */
+.eh-page .dg-langs { min-height: 2.7em; }
+.eh-page .dg-rule { min-height: 5.6em; }
+.eh-page .dg-code { min-height: calc(6em + 2 * var(--bs-spacer-2) + 2px); }
+/* 方塊裡的小字是這一層實際寫的錯誤處理程式，用等寬字才看得出是程式碼 */
+.eh-page .dg-note { font-family: var(--bs-font-monospace); font-size: .625rem; }
+.eh-page [data-node="screen"] .dg-note { font-family: var(--bs-font-sans-serif); font-size: .75rem; font-weight: bold; }
+
+/* 錯誤經過每一層時的狀態：標籤直接寫出這一層對錯誤做了什麼 */
+.eh-page .dg-node[data-state="fail"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 18%, var(--bs-secondary-bg)); animation: fx-shake .45s ease-out; }
+.eh-page .dg-node[data-state="fail"]::after { content: "出錯"; }
+.eh-page .dg-node[data-state="skip"] { --fx-c: var(--bs-secondary-color); opacity: .45; border-style: dashed; }
+.eh-page .dg-node[data-state="skip"]::after { content: "跳過"; }
+.eh-page .dg-node[data-state="check"] { --fx-c: var(--bs-info); border-color: var(--bs-info); animation: fx-pulse 1s ease-in-out infinite; }
+.eh-page .dg-node[data-state="check"]::after { content: "檢查錯誤"; }
+.eh-page .dg-node[data-state="pass"] { --fx-c: var(--bs-info); border-color: color-mix(in srgb, var(--bs-info) 60%, var(--bs-border-color)); }
+.eh-page .dg-node[data-state="pass"]::after { content: "往上傳"; }
+.eh-page .dg-node[data-state="caught"] { --fx-c: var(--bs-success); border-color: var(--bs-success); animation: fx-impact .7s ease-out forwards; }
+.eh-page .dg-node[data-state="caught"]::after { content: "接住"; }
+.eh-page .dg-node[data-state="forgot"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); border-style: dashed; animation: fx-pulse 1.2s ease-in-out infinite; }
+.eh-page .dg-node[data-state="forgot"]::after { content: "忘了處理"; }
+.eh-page .dg-node[data-state="wrong"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 14%, var(--bs-secondary-bg)); animation: fx-shake .45s ease-out; }
+.eh-page .dg-node[data-state="wrong"]::after { content: "錯誤被丟掉"; }
+.eh-page .dg-node[data-state="misled"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); animation: fx-impact .7s ease-out forwards, fx-shake .45s ease-out; }
+.eh-page .dg-node[data-state="misled"]::after { content: "訊息是錯的"; }
+.eh-page .dg-node[data-state="reject"] { --fx-c: var(--bs-purple); border-color: var(--bs-purple); background: color-mix(in srgb, var(--bs-purple) 14%, var(--bs-secondary-bg)); animation: fx-impact .8s ease-out forwards; }
+.eh-page .dg-node[data-state="reject"]::after { content: "編譯不過"; }
+@media (max-width: 760px) {
+  .eh-page .dg-rule, .eh-page .dg-code { min-height: 0; }
+  .eh-page .dg-note { font-size: .5625rem; }
+}

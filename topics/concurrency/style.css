@@ -1,0 +1,10 @@
+/* 同時處理很多請求主題專屬樣式；時間軸共用樣式在 assets/css/timeline.css，面板外殼沿用 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的時間軸才對得齊 */
+.cc-page .dg-langs { min-height: 2.7em; }
+.cc-page .dg-rule { min-height: 5.6em; }
+.cc-page .dg-code { min-height: calc(6em + 2 * var(--bs-spacer-2) + 2px); }
+.cc-page .tl-chart { --lw: 3.5rem; }
+@media (max-width: 760px) {
+  .cc-page .dg-rule, .cc-page .dg-code { min-height: 0; }
+  .cc-page .tl-chart { --lw: 2.75rem; }
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>複製 vs 共用 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide vr-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>複製 vs 共用：值型別 vs 參考型別 vs 不可變資料</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>只是在草稿上改了一下數量，正式訂單也跟著變了；或是呼叫一個「預覽價格」的函式，回來之後原本的價格卻被改掉。</p>
+        <p><b>打個比方</b>同事要一份你的報告來修改。複製是影印一份給他，他怎麼塗改都不影響你的；共用是把雲端文件的連結傳給他，他一改你也看得到；不可變是規定原稿不准動，要改就另存新版本，沒改的頁面兩個版本共用。</p>
+        <p><b>這頁比較</b>同一行「b = a」在不同語言裡的三種意思，以及各自會造成什麼 bug。</p>
+      </div>
+      <p>幾乎每個程式都會把資料從一個變數交給另一個變數，或交給函式當參數。這一步到底是「複製一份」還是「多一個名字指著同一份」，每種語言的規則不同，連同一種語言裡也可能數字、文字和物件各有規則。搞不清楚時，最常見的結果就是「我明明沒改它，它卻變了」。</p>
+      <p class="lesson-watch">上排是變數（a、b、函式的參數），中間是訂單資料，下面是訂單裡 1000 筆品項，箭頭代表「這個變數指著哪一份資料」。留意改了 b 或在函式裡改了參數之後，正式訂單 a 有沒有被意外改到，以及每種做法複製了幾筆資料。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>複製（值型別）</dt>
+        <dd>交出去的是完整的一份，之後誰改自己的那份都不影響別人，最不容易出錯。代價是資料大時，每次傳遞都要複製全部；另外函式裡改的是參數的複本，呼叫的人看不到，想要改動生效就得把結果回傳。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>數字、座標、日期這種小資料，複製幾乎不花成本，又能保證不被別人改到，所以大多數語言的基本型別都是複製。Go、Swift、C# 讓你自己決定一種資料要複製還是共用。</dd>
+        <dt>共用（參考型別）</dt>
+        <dd>交出去的只是「資料在哪裡」，不管資料多大都很快，也能讓好幾個地方一起看到同一份最新的資料。代價是任何一個拿到它的地方都能改它，改了就影響所有人，而你很難知道還有誰拿著它。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>大型物件（訂單、使用者、整份設定）每次都複製太浪費；而且很多時候你就是要大家看到同一份，例如畫面上的多個元件都顯示同一個使用者。JavaScript、Python、Java 的物件都是這樣。</dd>
+        <dt>不可變資料（Immutable）</dt>
+        <dd>資料建立後就不能改；要「改」就產生新版本，只複製改到的那一層，沒變的部分新舊版本共用。所以可以放心地到處傳，又不用每次整份複製。代價是要換一種寫法（改用「產生新版本」而不是「直接改」），不支援共用沒變部分的寫法一樣會慢。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>「誰改了我的資料」是大型程式裡最難追的問題之一。只要資料不能被改，這個問題就不存在；多個執行緒同時讀也不用加鎖（見 Race Condition）。React 的 state、Redux、函數式語言都建立在這個想法上。</dd>
+        <dt>實務建議</dt>
+        <dd>先搞清楚你用的語言裡，哪些型別是複製、哪些是共用。函式不要偷偷修改傳進來的物件，要改就回傳新的；需要一份獨立的副本時，明確地複製（例如 JavaScript 的 structuredClone）。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

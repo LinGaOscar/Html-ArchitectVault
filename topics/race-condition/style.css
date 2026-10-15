@@ -1,0 +1,10 @@
+/* Race Condition 主題專屬樣式；時間軸共用樣式在 assets/css/timeline.css，面板外殼沿用 assets/css/diagram.css */
+/* 三個面板的說明與程式碼長短不一，桌機並排時固定高度，下面的時間軸才對得齊 */
+.rc-page .dg-langs { min-height: 2.7em; }
+.rc-page .dg-rule { min-height: 5.6em; }
+.rc-page .dg-code { min-height: calc(4.5em + 2 * var(--bs-spacer-2) + 2px); }
+.rc-page .tl-chart { --lw: 4.5rem; }
+@media (max-width: 760px) {
+  .rc-page .dg-rule, .rc-page .dg-code { min-height: 0; }
+  .rc-page .tl-chart { --lw: 3.25rem; }
+}
