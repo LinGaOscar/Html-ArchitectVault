@@ -102,5 +102,5 @@ node --input-type=module -e "import {steps} from './topics/<主題>/steps.js'; c
 ## 慣例
 
 - 文字與註解用繁體中文，技術名詞保留英文；註解寫「為什麼」（教學上的理由），不寫「做了什麼」。
-- 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。首頁依「這一篇回答什麼問題」分篇：基礎篇（單機程式怎麼跑）、資料篇（資料怎麼查、怎麼放、怎麼保持一致）、架構篇（程式碼和系統怎麼組織）、通訊篇（元件之間怎麼溝通）、擴展與可靠性篇（流量變大、出錯時怎麼撐住）。
+- 新增主題：在 `topics/<名稱>/` 建立 `index.html`、`steps.js`、`render.js`、`style.css`，並在首頁 `index.html` 加一張卡片。首頁依「這一篇回答什麼問題」分篇，由讀者最容易接觸到的排到最底層：通訊篇（元件之間怎麼溝通）、資料篇（資料怎麼查、怎麼放、怎麼保持一致）、擴展與可靠性篇（流量變大、出錯時怎麼撐住）、架構篇（程式碼和系統怎麼組織）、深入篇（程式在電腦裡實際怎麼跑，記憶體這類需要程式基礎的主題）。每篇至少三個主題。
 - 驗證：使用者在 artifact（https://claude.ai/artifact/3GcLHdu6GLwH1hj6WjMs4F）上看結果，不要跑本機瀏覽器測試（localhost）。改完只做 `node --check` 與 steps 資料檢查，再更新 artifact。artifact 的首頁是另外產生的版本，主題連結要寫成 `./topics/<名稱>/index.html`。
