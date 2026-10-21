@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>Cloudflare 全貌 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide cfo-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>Cloudflare 全貌：一個請求會經過哪些服務</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>想把網站放上網路，打開 Cloudflare 的控制台，卻看到 Workers、KV、D1、R2、Durable Objects、Queues、Containers 一長串名字，不知道每個是做什麼的、該用哪一個。</p>
+        <p><b>打個比方</b>Cloudflare 像一家在全世界 300 多個城市都開了分店的連鎖餐廳。門口的接待（邊緣網路）幫你擋掉鬧事的人、把常點的餐先準備好；廚師（Workers）在每家分店現場做菜；冰箱、倉庫、帳本（KV、R2、D1）放食材和紀錄；需要特殊設備的大菜，送去中央廚房（Containers）做。</p>
+        <p><b>這頁比較</b>同一個蓋在 Cloudflare 上的電商網站，三種常見請求各會經過哪些服務、為什麼這樣分工。</p>
+      </div>
+      <p>Cloudflare 原本是幫網站擋攻擊、加速的網路服務，後來把「跑程式」和「存資料」也搬進它遍布全球的機房，讓整個系統可以直接蓋在上面。它的服務名稱很多，但其實分成三類：跑程式的（Workers、Containers）、存資料的（KV、D1、R2、Durable Objects）、串接流程的（Queues）。每一種存資料的服務擅長的事情都不一樣，看懂差別，才知道資料該放哪裡。</p>
+      <p>這頁先看全貌：三種請求同時發生，各走一條路。接下來的「程式跑在哪」和「資料放哪」兩頁，再分別深入比較。</p>
+      <p class="lesson-watch">三個面板是同一張服務圖。綠色的小標籤是使用者的請求，黃色的小標籤是使用者收到回應之後才在背景做的工作，方塊右上角寫著這個服務這一拍在做什麼。留意每種請求用到哪一種儲存，以及哪些工作被丟到背景。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>Cloudflare 邊緣網路（DNS、防護、CDN）</dt>
+        <dd>所有請求的入口。使用者連到離自己最近的機房，這裡先擋掉攻擊和異常流量，能快取的網頁、圖片直接回應，不用再往裡走。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>網路最慢的部分是距離。把入口放到全世界幾百個城市，大部分請求在離使用者很近的地方就處理完了，源頭的程式和資料庫也少挨很多流量。</dd>
+        <dt>Workers（跑程式）</dt>
+        <dd>你寫的程式，在每個機房都能執行，請求來了才啟動、幾毫秒就好，不用管伺服器。限制是只能跑 JavaScript、TypeScript、Python、WebAssembly 這類程式，每次執行的 CPU 時間和記憶體都有上限。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>傳統伺服器要一直開著、放在某一個地區，離得遠的使用者就慢。Workers 用很輕的隔離方式（V8 isolate），一台機器能同時跑成千上萬個，所以能放到每個城市、隨叫隨到。</dd>
+        <dt>KV（全球鍵值快取）</dt>
+        <dd>用一個名字（key）存一份資料，全世界都讀得到，而且讀得很快。代價是改了之後，要一段時間（最多約 60 秒）各地才會看到新值，同一個 key 也不能頻繁寫。適合設定、商品資訊、翻譯文字這種讀很多、很少改的資料。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>為讀多寫少的資料而生：把資料複製到靠近使用者的地方，犧牲「改完馬上看到」，換到全球都快。</dd>
+        <dt>D1（SQL 資料庫）</dt>
+        <dd>以 SQLite 為基礎的資料庫，可以用 SQL 查詢、篩選、排序、統計。寫入集中在一個主資料庫，資料一致；每個資料庫有容量上限（付費方案 10 GB），適合拆成很多個小資料庫（例如每個客戶一個）。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>訂單、會員這類資料需要「查詢」：價格低於多少、依銷量排序、某人的所有訂單。這是 KV 做不到的，所以需要一個真正的資料庫。</dd>
+        <dt>R2（大檔案倉庫）</dt>
+        <dd>存圖片、影片、備份、使用者上傳的檔案，容量幾乎沒有上限，跟 Amazon S3 的用法相容，而且使用者下載時不收流量費。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>大檔案不適合塞進資料庫。傳統雲端的物件儲存，檔案被下載越多次，流量費就越貴；R2 把這筆費用拿掉，圖片和影片網站的成本差很多。</dd>
+        <dt>Durable Objects（一次只服務一人的小房間）</dt>
+        <dd>每個物件在全世界只有一個，所有找它的請求排隊、一次處理一個，還自帶儲存。適合庫存、聊天室、多人協作、計數器這種「很多人同時改同一份資料」的地方，也能維持 WebSocket 長連線。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>分散在全世界的系統，最難的是「同時有很多人要改同一份資料」。與其到處加鎖，不如讓這份資料只在一個地方、一次處理一個人，從根本避開 Race Condition。</dd>
+        <dt>Queues（背景工作排隊）</dt>
+        <dd>把「晚一點做也沒關係」的工作排進佇列，由另一個程式慢慢取出來做；失敗會自動重試。使用者不用等寄信、縮圖、通知這些事做完。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>讓使用者只等真正必要的部分，其他的交給背景；流量突然暴增時，佇列也能先接住，後面的程式照自己的速度消化。</dd>
+        <dt>Containers（完整的 Linux 環境）</dt>
+        <dd>執行你自己打包的容器映像檔，任何語言、任何程式（例如 ImageMagick、ffmpeg、需要大量記憶體的 Python 程式）都能跑。閒置時會自動休眠省錢，但從休眠醒來要幾秒鐘。由 Workers 負責把請求轉給它。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>Workers 很快很輕，但跑不了需要完整作業系統的程式。Containers 補上這一塊，讓同一個系統裡的「重工作」不必再另外租一台伺服器。</dd>
+        <dt>還有哪些服務</dt>
+        <dd>Workflows 跑可以中途暫停、重試、等上好幾天的多步驟流程；Hyperdrive 讓 Workers 連到你原本就有的 PostgreSQL、MySQL；Workers AI、Vectorize 提供 AI 模型與向量搜尋。靜態網站直接放在 Workers 上（以前叫 Pages）。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

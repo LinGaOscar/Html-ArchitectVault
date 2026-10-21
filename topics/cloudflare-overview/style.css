@@ -1,0 +1,28 @@
+/* Cloudflare 全貌主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 三個面板的說明長短不一，桌機並排時固定高度，下面的服務圖才對得齊 */
+.cfo-page .dg-rule { min-height: 5.6em; }
+/* 九個服務擠在四欄裡，方塊和間距縮小一點，名稱才不會擠成一字一行 */
+.cfo-page .dg-diagram { gap: 26px 8px; }
+.cfo-page .dg-node { padding: 3px 4px; font-size: .6875rem; }
+.cfo-page .dg-sub, .cfo-page .dg-note { font-size: .625rem; }
+
+/* 每個服務這一拍在做什麼：標籤直接寫出來 */
+.cfo-page .dg-node[data-state="miss"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); animation: fx-pulse 1s ease-in-out infinite; }
+.cfo-page .dg-node[data-state="miss"]::after { content: "快取沒有"; }
+.cfo-page .dg-node[data-state="hit"] { --fx-c: var(--bs-success); border-color: var(--bs-success); animation: fx-impact .7s ease-out forwards; }
+.cfo-page .dg-node[data-state="hit"]::after { content: "命中"; }
+.cfo-page .dg-node[data-state="cached"] { --fx-c: var(--bs-success); border-color: var(--bs-success); }
+.cfo-page .dg-node[data-state="cached"]::after { content: "存進快取"; }
+.cfo-page .dg-node[data-state="pass"] { --fx-c: var(--bs-info); border-color: var(--bs-info); animation: fx-impact .7s ease-out forwards; }
+.cfo-page .dg-node[data-state="pass"]::after { content: "檢查通過"; }
+.cfo-page .dg-node[data-state="saved"] { --fx-c: var(--bs-success); border-color: var(--bs-success); background: color-mix(in srgb, var(--bs-success) 12%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards; }
+.cfo-page .dg-node[data-state="saved"]::after { content: "存好了"; }
+.cfo-page .dg-node[data-state="queued"] { --fx-c: var(--bs-warning); border-color: var(--bs-warning); animation: fx-bump .4s ease-out; }
+.cfo-page .dg-node[data-state="queued"]::after { content: "排進佇列"; }
+.cfo-page .dg-node[data-state="busy"] { --fx-c: var(--bs-primary); border-color: var(--bs-primary); animation: fx-pulse 1s ease-in-out infinite; }
+.cfo-page .dg-node[data-state="busy"]::after { content: "處理中"; }
+@media (max-width: 760px) {
+  .cfo-page .dg-rule { min-height: 0; }
+  .cfo-page .dg-node { font-size: .625rem; }
+  .cfo-page .dg-sub, .cfo-page .dg-note { font-size: .5625rem; }
+}

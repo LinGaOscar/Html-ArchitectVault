@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>資料放哪 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide cfs-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>資料放哪：KV vs D1 vs R2 vs Durable Objects</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>改了商品價格，有些地區的使用者還看到舊價格；限量商品明明只有 10 件，系統卻賣出了 50 張訂單。</p>
+        <p><b>打個比方</b>KV 像每家分店門口都貼一份的公告，誰經過都看得到，但換公告要一家一家換；D1 像總部的帳本，什麼都查得到，但要打電話去問；R2 像大倉庫，再大的東西都放得下，但只能照編號拿；Durable Objects 像只有一個窗口的櫃檯，大家排隊一次辦一個，絕不會辦錯。</p>
+        <p><b>這頁比較</b>Cloudflare 的四種存資料的服務，在讀取速度、改完能不能馬上看到、能不能查詢、能不能放大檔案、很多人同時搶的時候會不會出錯。</p>
+        <p class="lesson-prereq">建議先看：<a href="../cloudflare-overview/index.html">Cloudflare 全貌</a>、<a href="../race-condition/index.html">Race Condition</a></p>
+      </div>
+      <p>在 Cloudflare 上存資料，不是只有一個「資料庫」可以選。KV、D1、R2、Durable Objects 各自為不同的資料設計：有的追求全世界都讀得快，有的追求能查詢、資料一致，有的專門放大檔案，有的專門處理「很多人同時改同一份」。放錯地方，輕則變慢，重則資料出錯。</p>
+      <p>這頁用同一個電商網站的五件事，看四種儲存各會怎樣。資料都放在美東（D1、R2、Durable Objects），KV 則在每個機房都有副本。</p>
+      <p class="lesson-watch">每個面板上排是台北和倫敦的 Worker，下面是資料存放的地方（KV 多一層各地的副本）。綠色的小標籤是送出的請求，藍色的是拿回來的結果，方塊右上角寫著結果：OK、舊資料、做不到、超賣。留意改價之後台北讀到哪個價格，以及搶購時誰賣超過 10 件。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>KV</dt>
+        <dd>用一個名字存一份資料，全世界每個機房都有副本，讀得最快。代價是改了之後要一段時間（最多約 60 秒）各地才更新，同一個名字也不能頻繁寫，而且不能查詢、也不能當庫存計數。適合設定、商品資訊、翻譯文字、登入狀態。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>絕大多數網站的資料是讀很多、很少改。把資料複製到每個機房，讀的時候就不用跨海；只要能接受「改了之後晚一點才看到」，就能換到全世界都快。</dd>
+        <dt>D1</dt>
+        <dd>SQLite 為基礎的 SQL 資料庫，可以篩選、排序、統計，資料一致：改了之後馬上讀得到；搶購時用「庫存大於 0 才扣」的一行 SQL，就不會超賣。寫入集中在一個主資料庫，離得遠的使用者要多等網路；每個資料庫有容量上限，適合拆成很多個小資料庫。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>訂單、會員、商品目錄這種資料需要「查詢」，而且不能有兩個版本。D1 給你熟悉的 SQL，又不用自己管資料庫伺服器；需要時也能開讀取複本，讓遠方的讀取變快。</dd>
+        <dt>R2</dt>
+        <dd>大檔案倉庫，圖片、影片、備份、使用者上傳的檔案都放這裡，跟 Amazon S3 的用法相容，下載不收流量費。只能用檔名存取整個檔案，不能查詢內容；拿它當計數器（讀出來、改、寫回去）會遇到 Race Condition。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>大檔案塞進資料庫既慢又貴。物件儲存把「存很多大檔案」這件事做到最便宜；R2 再把傳統雲端最貴的下載流量費拿掉。</dd>
+        <dt>Durable Objects</dt>
+        <dd>每個物件在全世界只有一個，所有找它的請求排隊、一次處理一個，自帶儲存（可以用 SQL）。很多人同時改同一份資料也不會出錯，還能維持 WebSocket 長連線，適合庫存、聊天室、多人協作、遊戲房間。代價是一個物件只在一個地方，遠方的使用者要多等網路；要跨很多物件的查詢，還是要另外放 D1。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>分散在全世界的系統，最難的是協調「誰先誰後」。Durable Objects 的做法是：需要協調的資料只放一份、只在一個地方、一次處理一個請求，把 Race Condition 從根本上消除。</dd>
+        <dt>實際上一起用</dt>
+        <dd>一個典型的網站：商品資訊放 KV 讓全世界讀得快，改價時同時更新 D1 這份正本；訂單和會員放 D1 方便查詢；商品圖片和影片放 R2；每個商品的庫存交給一個 Durable Object，搶購時排隊扣。另外，已經有 PostgreSQL、MySQL 的系統，可以用 Hyperdrive 讓 Workers 連過去。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>

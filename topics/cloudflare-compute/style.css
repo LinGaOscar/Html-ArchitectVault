@@ -1,0 +1,9 @@
+/* 程式跑在哪主題專屬樣式；時間軸共用樣式在 assets/css/timeline.css，面板外殼沿用 assets/css/diagram.css */
+/* 三個面板的說明長短不一，桌機並排時固定高度，下面的時間軸才對得齊 */
+.cfc-page .dg-langs { min-height: 2.7em; }
+.cfc-page .dg-rule { min-height: 7em; }
+.cfc-page .tl-chart { --lw: 4.5rem; }
+@media (max-width: 760px) {
+  .cfc-page .dg-rule { min-height: 0; }
+  .cfc-page .tl-chart { --lw: 3.5rem; }
+}

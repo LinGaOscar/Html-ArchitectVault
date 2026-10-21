@@ -1,0 +1,16 @@
+/* 資料放哪主題專屬樣式；架構圖共用樣式在 assets/css/diagram.css */
+/* 四個面板的說明長短不一，桌機並排時固定高度，下面的讀寫路徑才對得齊 */
+.cfs-page .dg-langs { min-height: 2.7em; }
+.cfs-page .dg-rule { min-height: 7em; }
+.cfs-page .dg-diagram { gap: 28px 8px; }
+.cfs-page .dg-node[data-state="no"] { --fx-c: var(--bs-secondary-color); border-style: dashed; opacity: .7; animation: fx-shake .45s ease-out; }
+.cfs-page .dg-node[data-state="no"]::after { content: "做不到"; }
+.cfs-page .dg-node[data-state="oversold"] { --fx-c: var(--bs-danger); border-color: var(--bs-danger); background: color-mix(in srgb, var(--bs-danger) 16%, var(--bs-secondary-bg)); animation: fx-impact .7s ease-out forwards, fx-shake .45s ease-out; }
+.cfs-page .dg-node[data-state="oversold"]::after { content: "超賣"; }
+/* 桌機四個面板並排太擠時，改成兩兩一排 */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .cfs-page .dg-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .cfs-page .dg-rule { min-height: 0; }
+}

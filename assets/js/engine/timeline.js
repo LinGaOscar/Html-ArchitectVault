@@ -39,7 +39,7 @@ export function createTimelineRender({ systems, compare, maxLanes, legend }) {
     return `
       <article class="dg-panel tl-panel" data-sys="${sys.id}">
         <h3 class="dg-title">${sys.title}</h3>
-        ${sys.langs ? `<p class="dg-langs">常見於：${sys.langs}</p>` : ''}
+        ${sys.langs ? `<p class="dg-langs">${sys.langsLabel || '常見於'}：${sys.langs}</p>` : ''}
         <p class="dg-rule">${sys.rule}</p>
         ${sys.code ? `<pre class="snippet dg-code">${sys.code}</pre>` : ''}
         <div class="dg-scene">

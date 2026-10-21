@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="../../assets/js/theme.js"></script>
+  <title>程式跑在哪 - 系統設計動畫參考站</title>
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/diagram.css">
+  <link rel="stylesheet" href="../../assets/css/timeline.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="topic-page topic-page-wide cfc-page">
+    <a class="back-link" href="../../index.html">← 返回首頁</a>
+    <h1>程式跑在哪：傳統雲端主機 vs Workers vs Containers</h1>
+    <section class="lesson-intro">
+      <div class="lesson-plain">
+        <p><b>生活情境</b>網站放在美國的主機上，台灣的使用者總覺得卡卡的；或是半夜沒人用，主機的帳單照樣一直跑。</p>
+        <p><b>打個比方</b>傳統主機像一家開在紐約、24 小時營業的餐廳，全世界的客人都得飛過去吃，半夜沒客人也要付房租。Workers 像遍布每個城市的快餐車，客人走到哪就在哪做，但只能做簡單的餐點。Containers 像可以隨時開張的完整廚房，什麼菜都能做，但從打烊到開火要一點時間。</p>
+        <p><b>這頁比較</b>同一支程式放在三種地方執行，在「離使用者多遠、啟動多快、能跑什麼、怎麼計費」上的差別。</p>
+        <p class="lesson-prereq">建議先看：<a href="../cloudflare-overview/index.html">Cloudflare 全貌</a></p>
+      </div>
+      <p>程式總要放在某台電腦上跑。傳統的做法是租一台雲端主機，一直開著；Cloudflare 提供兩種不同的選擇：Workers 把程式分散到全世界的機房、請求來了才執行；Containers 讓你把完整的程式環境打包起來，需要時才啟動。哪一種比較好，要看你的程式需要什麼。</p>
+      <p class="lesson-watch">每個面板是一條時間軸：藍色是網路來回、黃色斜紋是啟動中、綠色是真正在執行程式。四個情境依序是：三地使用者同時呼叫 API、閒置一晚後的第一個請求、影片轉檔、一整天的計費時間。留意真正執行程式的時間其實都一樣，差別在等網路和等啟動。</p>
+    </section>
+    <div id="player-root"></div>
+    <section class="lesson-summary">
+      <h2>重點整理</h2>
+      <dl>
+        <dt>傳統雲端主機（VM）</dt>
+        <dd>一台一直開著的伺服器，放在你選的一個地區。什麼程式都能跑，沒有冷啟動，行為最好預測。代價是離得遠的使用者每次都要等網路來回；不管有沒有人用都在計費；流量變大時要自己加機器。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>它是最通用的基本單位：你完全掌控作業系統和環境，既有的程式不用改就能搬上去。長時間運作、流量穩定，或需要特殊軟體的服務，用它最單純。</dd>
+        <dt>Workers</dt>
+        <dd>程式放在 Cloudflare 全世界幾百個機房，請求從哪裡來就在附近執行，幾毫秒就啟動，沒人用時不計費。限制是只能跑 JavaScript、TypeScript、Python、WebAssembly，每次執行的 CPU 時間和記憶體有上限，跑不了 ffmpeg 這種需要完整作業系統的程式。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>Workers 不是替每個程式開一台虛擬機，而是在同一個程式引擎裡，用很輕的隔離（V8 isolate）同時跑成千上萬個程式。啟動成本幾乎是零，才能放到每個城市、按次計費。</dd>
+        <dt>Containers</dt>
+        <dd>把整個程式環境打包成容器映像檔，任何語言、任何程式都能跑。由 Workers 把請求轉給它；閒置一陣子會自動休眠、不計費。代價是從休眠醒來要幾秒鐘（冷啟動），而且不是每個城市都有，會在附近的機房執行。</dd>
+        <dd class="lesson-why"><b>為什麼這樣設計</b>補上 Workers 做不到的那一塊：轉檔、縮圖、跑既有的 Python 或 Go 服務。又保留「用多少付多少」的好處，不用為了偶爾才做的重工作，租一台整天開著的主機。</dd>
+        <dt>實務上怎麼搭配</dt>
+        <dd>常見的做法是讓 Workers 站在最前面接所有請求：輕量的事（驗證、轉址、讀快取、組合資料）直接處理；需要完整環境的重工作轉給 Containers；既有的大型服務或資料庫留在原本的主機，Workers 透過 Hyperdrive 之類的服務連過去。對冷啟動很敏感的工作，可以讓容器維持醒著。</dd>
+      </dl>
+    </section>
+  </main>
+  <script type="module">
+    import { initPlayer } from '../../assets/js/engine/player.js';
+    import { steps } from './steps.js';
+    import { render } from './render.js';
+    initPlayer({ steps, render, mount: document.getElementById('player-root') });
+  </script>
+</body>
+</html>
