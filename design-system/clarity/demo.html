@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clarity 元件示範</title>
+  <link rel="stylesheet" href="./tokens.css">
+  <link rel="stylesheet" href="./clarity.css">
+  <script src="./cursor-light.js" defer></script>
+  <style>
+    .demo-wrap { max-width: 1024px; margin: 0 auto; padding: var(--space-8) var(--space-4) var(--space-20); }
+    .demo-section { margin-top: var(--space-20); }
+    .demo-label { margin: 0 0 var(--space-4); color: var(--ink-muted); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+    .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-8); }
+    .theme-toggle { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 20; }
+  </style>
+</head>
+<body>
+  <nav class="cl-nav" aria-label="主選單">
+    <div class="cl-nav-inner">
+      <a class="cl-nav-brand" href="#">Clarity</a>
+      <ul class="cl-nav-list">
+        <li><a class="cl-nav-item" href="#">商店</a></li>
+        <li><a class="cl-nav-item is-active" aria-current="page" href="#">筆電</a></li>
+        <li><a class="cl-nav-item" href="#">平板</a></li>
+        <li><a class="cl-nav-item" href="#">手機</a></li>
+        <li><a class="cl-nav-item" href="#">支援</a></li>
+      </ul>
+      <div class="cl-nav-actions"><a class="cl-btn cl-btn-primary cl-btn-sm" href="#">購買</a></div>
+    </div>
+  </nav>
+
+  <section class="cl-hero cl-hero-subtle">
+    <p class="cl-hero-eyebrow">新品</p>
+    <h1 class="cl-hero-title">輕巧筆電</h1>
+    <p class="cl-hero-sub">更輕，更快。全天候電力，一整天都不用找插座。</p>
+    <div class="cl-hero-actions">
+      <a class="cl-btn cl-btn-primary cl-btn-md" href="#">了解更多</a>
+      <a class="cl-btn cl-btn-secondary cl-btn-md" href="#">購買</a>
+    </div>
+  </section>
+
+  <main class="demo-wrap">
+    <section class="demo-section">
+      <p class="demo-label caption">Card（移動滑鼠看光暈）</p>
+      <div class="demo-grid">
+        <article class="cl-card cl-card-subtle cl-lit">
+          <p class="cl-card-eyebrow">新品</p>
+          <h3 class="cl-card-title">輕巧筆電</h3>
+          <p class="cl-card-body">更輕，更快，整天都有電。</p>
+          <div class="cl-card-actions">
+            <a class="cl-btn cl-btn-primary cl-btn-sm" href="#">了解更多</a>
+            <a class="cl-link" href="#">購買<span class="cl-link-chev" aria-hidden="true">›</span></a>
+          </div>
+        </article>
+        <article class="cl-card cl-card-inverse cl-lit">
+          <h3 class="cl-card-title">專業級效能</h3>
+          <p class="cl-card-body">為大型專案而生。</p>
+          <div class="cl-card-actions">
+            <a class="cl-btn cl-btn-primary cl-btn-sm" href="#">了解更多</a>
+            <a class="cl-link" href="#">購買<span class="cl-link-chev" aria-hidden="true">›</span></a>
+          </div>
+        </article>
+        <article class="cl-card cl-card-plain cl-card-start cl-lit">
+          <h3 class="cl-card-title">免費送貨</h3>
+          <p class="cl-card-body">所有訂單皆可免費到府，也能到店取貨。</p>
+          <div class="cl-card-actions">
+            <a class="cl-link" href="#">查看詳情<span class="cl-link-chev" aria-hidden="true">›</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="demo-section">
+      <p class="demo-label caption">Button / TextLink / Badge</p>
+      <div class="demo-row">
+        <button class="cl-btn cl-btn-primary cl-btn-md" type="button">了解更多</button>
+        <button class="cl-btn cl-btn-secondary cl-btn-md" type="button">購買</button>
+        <button class="cl-btn cl-btn-primary cl-btn-md" type="button" disabled>已停用</button>
+        <a class="cl-link" href="#">比較所有機型<span class="cl-link-chev" aria-hidden="true">›</span></a>
+        <span class="cl-badge">新品</span>
+      </div>
+    </section>
+
+    <section class="demo-section">
+      <p class="demo-label caption">Input</p>
+      <div class="demo-grid">
+        <div class="cl-input">
+          <label class="cl-input-label" for="email">電子郵件</label>
+          <input class="cl-input-field" id="email" placeholder="name@example.com" aria-describedby="email-msg">
+          <p class="cl-input-msg" id="email-msg">我們只會寄送訂單相關通知。</p>
+        </div>
+        <div class="cl-input cl-input-error">
+          <label class="cl-input-label" for="zip">郵遞區號</label>
+          <input class="cl-input-field" id="zip" value="10A" aria-invalid="true" aria-describedby="zip-msg">
+          <p class="cl-input-msg" id="zip-msg">請輸入 3 或 5 碼數字。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="cl-btn cl-btn-secondary cl-btn-sm theme-toggle" type="button" id="themeToggle">切換深淺色</button>
+  <script>
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      var root = document.documentElement;
+      var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      root.dataset.theme = dark ? 'light' : 'dark';
+    });
+  </script>
+</body>
+</html>

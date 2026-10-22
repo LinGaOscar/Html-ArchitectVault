@@ -1,0 +1,84 @@
+/* Clarity 元件樣式：class 皆以 cl- 開頭。需先載入 tokens.css。 */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+TC:wght@400;600&display=swap");
+
+body { margin: 0; background: var(--surface-100); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+/* ---------- Button ---------- */
+.cl-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); border-radius: var(--radius-pill); border: 1px solid transparent; font-family: var(--font-sans); font-weight: 400; text-decoration: none; cursor: pointer; white-space: nowrap; transition: filter .15s ease, background-color .15s ease; }
+.cl-btn-md { font-size: 17px; line-height: 20px; padding: 11px 22px; min-height: 44px; box-sizing: border-box; }
+.cl-btn-sm { font-size: 14px; line-height: 18px; padding: 7px 15px; min-height: 32px; box-sizing: border-box; }
+.cl-btn-primary { background: var(--action); color: var(--on-action); }
+.cl-btn-primary:hover { filter: brightness(1.1); }
+.cl-btn-secondary { background: transparent; color: var(--link); border-color: var(--link); }
+.cl-btn-secondary:hover { background: var(--link); color: var(--surface-100); }
+.cl-btn:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.cl-btn:disabled, .cl-btn[aria-disabled="true"] { opacity: .4; cursor: default; filter: none; }
+
+/* ---------- TextLink ---------- */
+.cl-link { color: var(--link); font-size: 17px; line-height: 25px; text-decoration: none; }
+.cl-link:hover { text-decoration: underline; }
+.cl-link:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
+.cl-link-chev { margin-left: 4px; }
+
+/* ---------- Badge ---------- */
+.cl-badge { display: inline-block; color: var(--highlight); font-size: 14px; line-height: 18px; font-weight: 600; }
+
+/* ---------- Card ---------- */
+.cl-card { box-sizing: border-box; border-radius: var(--radius-lg); padding: var(--space-8); display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-2); overflow: hidden; }
+.cl-card-start { align-items: flex-start; text-align: left; }
+.cl-card-subtle { background: var(--surface-200); color: var(--ink); }
+.cl-card-plain { background: var(--surface-100); color: var(--ink); border: 1px solid var(--hairline); }
+.cl-card-inverse { background: var(--ink); color: var(--surface-100); }
+.cl-card-eyebrow { margin: 0; color: var(--highlight); font-size: 14px; line-height: 18px; font-weight: 600; }
+.cl-card-title { margin: 0; font-size: 28px; line-height: 32px; font-weight: 600; letter-spacing: -0.2px; }
+.cl-card-body { margin: 0; font-size: 17px; line-height: 25px; color: var(--ink-muted); }
+.cl-card-actions { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; justify-content: inherit; margin-top: var(--space-2); }
+.cl-card-media { margin-top: var(--space-4); width: 100%; }
+.cl-card-media img { display: block; width: 100%; height: auto; border-radius: var(--radius-sm); }
+.cl-card-inverse .cl-card-body { color: var(--hairline); }
+.cl-card-inverse .cl-card-eyebrow { color: var(--hairline); }
+.cl-card-inverse .cl-link, .cl-card-inverse .cl-btn-secondary { color: var(--link-on-inverse); border-color: var(--link-on-inverse); }
+.cl-card-inverse .cl-btn-secondary:hover { background: var(--link-on-inverse); color: var(--ink); }
+
+/* ---------- Input ---------- */
+.cl-input { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); }
+.cl-input-label { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--ink); }
+.cl-input-field { box-sizing: border-box; height: 48px; padding: 0 var(--space-4); border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-100); color: var(--ink); font: 17px/25px var(--font-sans); }
+.cl-input-field::placeholder { color: var(--ink-muted); }
+.cl-input-field:hover { border-color: var(--ink-muted); }
+.cl-input-field:focus { outline: none; border-color: var(--link); box-shadow: 0 0 0 3px var(--link); box-shadow: 0 0 0 3px color-mix(in srgb, var(--link) 35%, transparent); }
+.cl-input-field:disabled { opacity: .4; }
+.cl-input-msg { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink-muted); }
+.cl-input-error .cl-input-field { border-color: var(--danger); }
+.cl-input-error .cl-input-msg { color: var(--danger); }
+
+/* ---------- NavBar ---------- */
+.cl-nav { position: sticky; top: 0; z-index: 10; background: var(--surface-200); background: color-mix(in srgb, var(--surface-200) 80%, transparent); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--hairline); font-family: var(--font-sans); }
+.cl-nav-inner { max-width: 1024px; margin: 0 auto; height: 44px; padding: 0 var(--space-4); display: flex; align-items: center; gap: var(--space-8); }
+.cl-nav-brand { font-size: 17px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.cl-nav-list { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--space-8); flex: 1; justify-content: center; }
+.cl-nav-item { font-size: 12px; line-height: 16px; color: var(--ink); text-decoration: none; opacity: .8; }
+.cl-nav-item:hover, .cl-nav-item.is-active { opacity: 1; }
+.cl-nav-item:focus-visible, .cl-nav-brand:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
+.cl-nav-actions { display: flex; gap: var(--space-2); align-items: center; }
+@media (max-width: 640px) { .cl-nav-list { display: none; } .cl-nav-inner { justify-content: space-between; } }
+
+/* ---------- Hero ---------- */
+.cl-hero { box-sizing: border-box; padding: var(--space-20) var(--space-4); text-align: center; display: flex; flex-direction: column; align-items: center; font-family: var(--font-sans); }
+.cl-hero-plain { background: var(--surface-100); color: var(--ink); }
+.cl-hero-subtle { background: var(--surface-200); color: var(--ink); }
+.cl-hero-inverse { background: var(--ink); color: var(--surface-100); }
+.cl-hero-eyebrow { margin: 0 0 var(--space-2); color: var(--highlight); font-size: 17px; line-height: 21px; font-weight: 600; }
+.cl-hero-title { margin: 0; font-size: 56px; line-height: 60px; font-weight: 600; letter-spacing: -0.28px; max-width: 18ch; }
+.cl-hero-sub { margin: var(--space-2) 0 0; font-size: 21px; line-height: 28px; color: var(--ink-muted); max-width: 36ch; }
+.cl-hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-4); margin-top: var(--space-4); }
+.cl-hero-media { margin-top: var(--space-8); width: 100%; max-width: 980px; }
+.cl-hero-inverse .cl-hero-sub, .cl-hero-inverse .cl-hero-eyebrow { color: var(--hairline); }
+.cl-hero-inverse .cl-link, .cl-hero-inverse .cl-btn-secondary { color: var(--link-on-inverse); border-color: var(--link-on-inverse); }
+@media (max-width: 640px) { .cl-hero-title { font-size: 40px; line-height: 44px; } .cl-hero-sub { font-size: 19px; line-height: 26px; } }
+
+/* ---------- Cursor light (any .cl-lit element): glow only, no shadow ---------- */
+.cl-lit { position: relative; isolation: isolate; }
+.cl-lit::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; opacity: var(--lit, 0); transition: opacity .2s ease; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0px), var(--sheen), transparent 70%); }
+.cl-card-inverse.cl-lit::after { background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0px), var(--sheen-inverse), transparent 70%); }
+@media (prefers-reduced-motion: reduce) { .cl-lit::after { display: none; } }

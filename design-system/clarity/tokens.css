@@ -1,0 +1,67 @@
+/* Clarity 設計 Token（由 tokens.json 產生）。
+ * 淺色為預設；<html data-theme="dark"> 強制深色；未指定時跟隨系統設定。 */
+:root, [data-theme="light"] {
+  --surface-100: #ffffff;
+  --surface-200: #f5f5f7;
+  --ink: #1d1d1f;
+  --ink-muted: #6e6e73;
+  --action: #0071e3;
+  --on-action: #ffffff;
+  --link: #0066cc;
+  --hairline: #d2d2d7;
+  --highlight: #b64400;
+  --link-on-inverse: #2997ff;
+  --danger: #e30000;
+  --sheen: rgba(0, 0, 0, 0.13);
+  --sheen-inverse: rgba(255, 255, 255, 0.10);
+}
+[data-theme="dark"] {
+  --surface-100: #000000;
+  --surface-200: #161617;
+  --ink: #f5f5f7;
+  --ink-muted: #a1a1a6;
+  --action: #0071e3;
+  --on-action: #ffffff;
+  --link: #2997ff;
+  --hairline: #424245;
+  --highlight: #ff791b;
+  --link-on-inverse: #0066cc;
+  --danger: #ff453a;
+  --sheen: rgba(255, 255, 255, 0.08);
+  --sheen-inverse: rgba(0, 0, 0, 0.13);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-100: #000000;
+    --surface-200: #161617;
+    --ink: #f5f5f7;
+    --ink-muted: #a1a1a6;
+    --action: #0071e3;
+    --on-action: #ffffff;
+    --link: #2997ff;
+    --hairline: #424245;
+    --highlight: #ff791b;
+    --link-on-inverse: #0066cc;
+    --danger: #ff453a;
+    --sheen: rgba(255, 255, 255, 0.08);
+    --sheen-inverse: rgba(0, 0, 0, 0.13);
+  }
+}
+:root {
+  --space-2: 8px;
+  --space-4: 16px;
+  --space-8: 32px;
+  --space-20: 80px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --radius-pill: 980px;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Noto Sans TC", system-ui, sans-serif;
+}
+
+/* 文字樣式 */
+.hero { font-family: var(--font-sans); font-size: 56px; line-height: 60px; font-weight: 600; letter-spacing: -0.28px; }
+.headline { font-family: var(--font-sans); font-size: 40px; line-height: 44px; font-weight: 600; letter-spacing: -0.2px; }
+.title { font-family: var(--font-sans); font-size: 28px; line-height: 32px; font-weight: 600; }
+.subhead { font-family: var(--font-sans); font-size: 21px; line-height: 28px; font-weight: 400; }
+.body { font-family: var(--font-sans); font-size: 17px; line-height: 25px; font-weight: 400; }
+.caption { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 400; }
